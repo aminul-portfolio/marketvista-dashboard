@@ -389,3 +389,7 @@ This project is most relevant to roles involving:
 ## One-line summary
 
 MarketVista Dashboard is a monitoring-first analyst console that turns seeded market data into signals, freshness awareness, watchlist visibility, and chart/table inspection surfaces within a broader fintech decision workflow.
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
