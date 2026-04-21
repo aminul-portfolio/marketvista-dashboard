@@ -1,0 +1,191 @@
+{% extends "monitoring/base_premium.html" %}
+{% load static %}
+
+{% block title %}{{ asset.symbol }}{% endblock %}
+
+{% block page_title %}Asset Detail — {{ asset.symbol }}{% endblock %}
+
+{% block breadcrumb %}Market › Assets › {{ asset.symbol }}{% endblock %}
+
+{% block topbar_right %}
+  {% if freshness_signal %}
+    <span class="mv-freshness">Updated {{ freshness_signal.delay_minutes|default:"—" }} min ago</span>
+  {% endif %}
+{% endblock %}
+
+{% block page_content %}
+
+<!-- Asset header -->
+<div class="mv-asset-hd">
+  <div class="mv-ah-left">
+    <div class="mv-asset-icon">{{ asset.symbol|slice:":2" }}</div>
+    <div>
+      <div class="mv-asset-name">{{ asset.name }}</div>
+      <div class="mv-asset-sub">
+        <span class="mv-asset-sym">{{ asset.symbol }}</span>
+        <span class="mv-asset-cls">{{ asset.get_asset_type_display }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="mv-ah-right">
+    {% if latest_snapshot %}
+      <div class="mv-asset-price">${{ latest_snapshot.price|floatformat:2 }}</div>
+      {% if pct_move is not None %}
+        <div class="mv-price-chg {% if pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
+          {% if pct_move >= 0 %}+{% endif %}{{ pct_move|floatformat:2 }}% (3-day)
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="mv-asset-price mv-muted">No price data</div>
+    {% endif %}
+    {% if on_watchlist %}
+      <form method="post" action="{% url 'monitoring:watchlist_remove' asset.symbol %}">
+        {% csrf_token %}
+        <button type="submit" class="mv-wl-btn" style="margin-top:8px;">★ On your watchlist</button>
+      </form>
+    {% else %}
+      <form method="post" action="{% url 'monitoring:watchlist_add' asset.symbol %}">
+        {% csrf_token %}
+        <button type="submit" class="mv-wl-btn" style="margin-top:8px;border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);">☆ Add to watchlist</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Price chart placeholder (Plotly renders here) -->
+<div class="mv-chart-section">
+  <div class="mv-chart-hd">
+    <span class="mv-chart-title">Price History — {{ asset.symbol }}</span>
+    <div class="mv-period-tabs">
+      <a href="?period=7d"  class="mv-pt {% if period == '7d'  or not period %}active{% endif %}">7d</a>
+      <a href="?period=30d" class="mv-pt {% if period == '30d' %}active{% endif %}">30d</a>
+      <a href="?period=90d" class="mv-pt {% if period == '90d' %}active{% endif %}">90d</a>
+    </div>
+  </div>
+  <!-- Plotly container — the dashboard.js chart logic can be reused here -->
+  <div id="asset-chart" style="height:140px;display:flex;align-items:flex-end;gap:2px;padding:4px 0;">
+    {% if ohlc_rows %}
+      {% for row in ohlc_rows %}
+        {% with h=row.close|floatformat:0 %}
+        <div style="
+          flex:1;
+          background:{% if forloop.last %}#0d9488{% else %}rgba(13,148,136,0.3){% endif %};
+          border-radius:2px 2px 0 0;
+          min-width:6px;
+        " title="{{ row.timestamp|date:'d M' }}: ${{ row.close|floatformat:2 }}"></div>
+        {% endwith %}
+      {% endfor %}
+    {% else %}
+      <div class="mv-empty" style="width:100%;">No OHLC data available. Run seed_demo_data to populate.</div>
+    {% endif %}
+  </div>
+  {% if ohlc_rows %}
+  <div style="display:flex;justify-content:space-between;margin-top:4px;">
+    <span style="font-size:9px;color:rgba(255,255,255,0.2);">{{ ohlc_rows.0.timestamp|date:"d M" }}</span>
+    <span style="font-size:9px;color:rgba(255,255,255,0.2);">{{ ohlc_rows|last|slice:"timestamp" }}{{ ohlc_rows|last }}</span>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Two-column: signal history + alerts -->
+<div class="mv-two-col-equal">
+
+  <!-- Signal history -->
+  <div class="mv-card">
+    <div class="mv-card-hd">
+      <span class="mv-card-title">Signal History</span>
+      <span style="font-size:10px;color:rgba(255,255,255,0.25);">{{ signal_history|length }} signal{{ signal_history|length|pluralize }}</span>
+    </div>
+    {% if signal_history %}
+      {% for sig in signal_history %}
+      <div class="mv-detail-sig-row">
+        <span class="mv-chip
+          {% if sig.severity == 'ELEVATED' %}elevated
+          {% elif sig.severity == 'WATCHLIST' %}watchlist
+          {% else %}info{% endif %}">
+          {{ sig.severity }}
+        </span>
+        <span class="mv-sig-type-badge">{{ sig.get_signal_type_display|upper|truncatechars:12 }}</span>
+        <span class="mv-sig-detail-msg">{{ sig.details|default:sig.title|truncatechars:50 }}</span>
+        {% if sig.metric_value is not None %}
+          <span class="mv-sig-metric">{{ sig.metric_value|floatformat:2 }}</span>
+        {% endif %}
+        <span class="mv-sig-ts">{{ sig.signal_timestamp|timesince|truncatechars:8 }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="mv-empty" style="padding:20px;">No signals generated for this asset yet.</div>
+    {% endif %}
+  </div>
+
+  <!-- Active alerts -->
+  <div class="mv-card">
+    <div class="mv-card-hd">
+      <span class="mv-card-title">Active Alerts</span>
+      <a href="{% url 'monitoring:create_alert' %}" class="mv-card-link">+ New →</a>
+    </div>
+    {% if asset_alerts %}
+      {% for alert in asset_alerts %}
+      <div class="mv-alert-item">
+        <div class="mv-ai-row">
+          <span class="mv-ai-label">
+            Price {{ alert.direction }}
+            ${{ alert.target_price|floatformat:2 }}
+          </span>
+          <span class="mv-chip {% if alert.is_triggered %}triggered{% else %}active{% endif %}">
+            {% if alert.is_triggered %}Triggered{% else %}Active{% endif %}
+          </span>
+        </div>
+        {% if latest_snapshot and not alert.is_triggered %}
+          <div class="mv-ai-detail">
+            Current: ${{ latest_snapshot.price|floatformat:2 }}
+          </div>
+        {% elif alert.is_triggered %}
+          <div class="mv-ai-detail">Triggered {{ alert.created_at|timesince }} ago</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="mv-empty" style="padding:20px;">
+        No alerts set for {{ asset.symbol }}.
+        <div style="margin-top:8px;">
+          <a href="{% url 'monitoring:create_alert' %}" class="mv-btn primary">Create alert →</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- RiskWise CTA -->
+{% if has_elevated_signal %}
+<div class="mv-cta-primary">
+  <div>
+    <div class="mv-cta-eye">RiskWise Planner — FinTech Suite</div>
+    <div class="mv-cta-title">Investigate {{ asset.symbol }} in RiskWise Planner</div>
+    <div class="mv-cta-sub">
+      {{ asset.symbol }} has an ELEVATED signal. Model scenarios, run Monte Carlo, and plan your position before entering.
+    </div>
+  </div>
+  <a href="#" class="mv-btn-solid">Investigate in RiskWise →</a>
+</div>
+{% else %}
+<div class="mv-footer-cta">
+  <div>
+    <div class="mv-fc-eye">FinTech Suite</div>
+    <div class="mv-fc-txt">
+      When {{ asset.symbol }} reaches ELEVATED status, route to RiskWise Planner for scenario modelling.
+    </div>
+  </div>
+  <a href="{% url 'monitoring:signals' %}" class="mv-btn">View all signals →</a>
+</div>
+{% endif %}
+
+<!-- Back link -->
+<div style="margin-top:4px;">
+  <a href="{% url 'monitoring:asset_list' %}" class="mv-muted" style="font-size:11px;text-decoration:none;">
+    ← Back to assets
+  </a>
+</div>
+
+{% endblock %}

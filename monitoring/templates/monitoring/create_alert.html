@@ -1,24 +1,132 @@
 {% extends "monitoring/base.html" %}
+
 {% block title %}Create Alert{% endblock %}
 
 {% block content %}
-<div class="container">
-  <h1 class="my-4">🔔 Create Price Alert</h1>
-  <form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-      {{ form.asset.label_tag }}
-      {{ form.asset }}
+<div class="container-fluid py-4">
+
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-11">
+      <section class="mv-hero mv-animate-1">
+        <div class="mv-eyebrow">
+          <i class="bi bi-bell"></i>
+          Alert creation surface
+        </div>
+        <div class="row g-4 mt-1 align-items-start">
+          <div class="col-12 col-lg-7">
+            <h1 class="mv-title">Create Price Alert</h1>
+            <p class="mv-subtitle">
+              Add a monitoring trigger for a tracked asset so MarketVista can surface price conditions
+              that deserve analyst attention.
+            </p>
+            <div class="mv-chip-row">
+              <span class="mv-chip"><i class="bi bi-broadcast"></i> Monitoring-first workflow</span>
+              <span class="mv-chip"><i class="bi bi-bell"></i> User-defined alert tracking</span>
+              <span class="mv-chip"><i class="bi bi-lightning-charge"></i> Analyst attention routing</span>
+            </div>
+          </div>
+          <div class="col-12 col-lg-5">
+            <div class="mv-hero-side">
+              <div class="mv-hero-side-label">What this does</div>
+              <div class="mv-hero-side-value">Turns a market condition into a monitoring trigger</div>
+              <div class="mv-hero-side-note">
+                Use alerts to keep focus on important assets while the dashboard handles
+                freshness, signals, watchlist context, and chart review.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-    <div class="mb-3">
-      {{ form.direction.label_tag }}
-      {{ form.direction }}
+  </div>
+
+  <div class="row justify-content-center mt-4">
+    <div class="col-12 col-xl-11">
+      <section class="mv-panel-card mv-animate-2">
+        <div class="mv-block-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-plus-circle me-2"></i>New alert</span>
+          <span class="small">Monitoring trigger setup</span>
+        </div>
+        <div class="mv-surface-body">
+          <div class="row g-4">
+            <div class="col-12 col-xl-7">
+              <form method="post" novalidate id="createAlertForm">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                  <div class="alert mv-alert mb-4">
+                    <div class="d-flex align-items-start gap-2">
+                      <i class="bi bi-exclamation-triangle mt-1"></i>
+                      <div>{% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}</div>
+                    </div>
+                  </div>
+                {% endif %}
+
+                <div class="mb-4">
+                  <label for="{{ form.asset.id_for_label }}" class="form-label text-light fw-semibold small mb-2">Asset</label>
+                  {{ form.asset }}
+                  {% if form.asset.errors %}
+                    <div class="text-danger small mt-2">{% for e in form.asset.errors %}<div>{{ e }}</div>{% endfor %}</div>
+                  {% endif %}
+                  <div class="mv-section-note mt-2">Choose the asset you want MarketVista to monitor.</div>
+                </div>
+
+                <div class="mb-4">
+                  <label for="{{ form.direction.id_for_label }}" class="form-label text-light fw-semibold small mb-2">Direction</label>
+                  {{ form.direction }}
+                  {% if form.direction.errors %}
+                    <div class="text-danger small mt-2">{% for e in form.direction.errors %}<div>{{ e }}</div>{% endfor %}</div>
+                  {% endif %}
+                  <div class="mv-section-note mt-2">Define whether the alert triggers when price moves above or below the target.</div>
+                </div>
+
+                <div class="mb-4">
+                  <label for="{{ form.target_price.id_for_label }}" class="form-label text-light fw-semibold small mb-2">Target price</label>
+                  {{ form.target_price }}
+                  {% if form.target_price.errors %}
+                    <div class="text-danger small mt-2">{% for e in form.target_price.errors %}<div>{{ e }}</div>{% endfor %}</div>
+                  {% endif %}
+                  <div class="mv-section-note mt-2">Set the threshold that should create an actionable monitoring event.</div>
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row gap-3 pt-3">
+                  <button type="submit" class="btn mv-primary-btn d-inline-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-bell"></i><span>Create Alert</span>
+                  </button>
+                  <a href="{% url 'monitoring:alert_list' %}" class="btn btn-outline-light d-inline-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-arrow-left"></i><span>Back to Alerts</span>
+                  </a>
+                </div>
+              </form>
+            </div>
+
+            <div class="col-12 col-xl-5">
+              <div class="mv-panel-card h-100" style="background:rgba(10,18,40,0.42);">
+                <div class="mv-block-header">
+                  <span><i class="bi bi-info-circle me-2"></i>How to use this page</span>
+                </div>
+                <div class="mv-surface-body">
+                  <ul class="list-unstyled mb-0 d-grid gap-3">
+                    <li class="mv-section-note">• Choose an asset from the tracked monitoring universe.</li>
+                    <li class="mv-section-note">• Set whether you care about a move above or below the target.</li>
+                    <li class="mv-section-note">• Use alerts to complement signals, not replace them.</li>
+                    <li class="mv-section-note">• Review triggered conditions from the Alerts page and dashboard workflow.</li>
+                  </ul>
+                  <hr class="border-secondary my-4">
+                  <div class="mv-kv">
+                    <div class="mv-kv-row"><span>Primary role</span><span>Alert setup</span></div>
+                    <div class="mv-kv-row"><span>Product fit</span><span>Monitoring-first</span></div>
+                    <div class="mv-kv-row"><span>Pairs with</span><span>Signals + Watchlist</span></div>
+                    <div class="mv-kv-row"><span>Next review surface</span><span>Alerts / Dashboard</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-    <div class="mb-3">
-      {{ form.target_price.label_tag }}
-      {{ form.target_price }}
-    </div>
-    <button type="submit" class="btn btn-primary">Create Alert</button>
-  </form>
+  </div>
+
 </div>
 {% endblock %}

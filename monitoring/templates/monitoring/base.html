@@ -3,70 +3,125 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>{% block title %}MarketVista Dashboard{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="MarketVista Dashboard — monitoring-first analyst visibility for FinTech workflows. Part of the DataBridge → MarketVista → RiskWise → TradeIntel suite.">
+  <meta name="theme-color" content="#07111f">
 
+  <title>{% block title %}MarketVista{% endblock %} — MarketVista Dashboard</title>
+
+  <!-- ── Favicon — teal identity ── -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230d9488'/><polyline points='5,22 11,14 17,18 27,8' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+
+  <!-- ── DM Sans — suite-wide font ── -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
 
+  <!-- ── Bootstrap ── -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-  <link rel="stylesheet" href="{% static 'css/legacy_ui.css' %}">
+  <!-- ── MarketVista CSS ── -->
   <link rel="stylesheet" href="{% static 'css/marketvista.css' %}">
+  <link rel="stylesheet" href="{% static 'css/premium_shell.css' %}">
 
-  <link rel="icon" href="{% static 'img/marketpulse-icon.png' %}" type="image/png">
+  {% block extra_head %}{% endblock %}
 </head>
 <body class="marketvista-shell">
 
 {% with current=request.resolver_match.url_name %}
 <nav class="navbar navbar-expand-lg sticky-top mv-navbar">
   <div class="container-fluid px-3 px-lg-4">
+
     <a class="navbar-brand mv-brand d-flex align-items-center gap-2" href="{% url 'monitoring:home' %}">
       <i class="bi bi-broadcast-pin fs-5"></i>
-      <span>MarketVista Dashboard</span>
+      <span>MarketVista</span>
     </a>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mvNavbar" aria-controls="mvNavbar" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#mvNavbar"
+            aria-controls="mvNavbar" aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon" style="filter:invert(1);"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="mvNavbar">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+
         <li class="nav-item">
-          <a class="nav-link mv-nav-link {% if current == 'home' %}active{% endif %}" href="{% url 'monitoring:home' %}">
+          <a class="nav-link mv-nav-link {% if current == 'home' %}active{% endif %}"
+             href="{% url 'monitoring:home' %}">
             <i class="bi bi-house-door"></i> Home
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link mv-nav-link {% if current == 'overview' %}active{% endif %}" href="{% url 'monitoring:overview' %}">
-            <i class="bi bi-grid-1x2"></i> Overview
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link mv-nav-link {% if current == 'dashboard' %}active{% endif %}" href="{% url 'monitoring:dashboard' %}">
+          <a class="nav-link mv-nav-link {% if current == 'dashboard' %}active{% endif %}"
+             href="{% url 'monitoring:dashboard' %}">
             <i class="bi bi-speedometer2"></i> Dashboard
           </a>
         </li>
 
+        <!-- ── New premium pages ── -->
         <li class="nav-item">
-          <a class="nav-link mv-nav-link {% if current == 'alert_list' or current == 'alert_add' or current == 'create_alert' %}active{% endif %}" href="{% url 'monitoring:alert_list' %}">
-            <i class="bi bi-bell"></i> Alerts
+          <a class="nav-link mv-nav-link {% if current == 'asset_list' or current == 'asset_detail' %}active{% endif %}"
+             href="{% url 'monitoring:asset_list' %}">
+            <i class="bi bi-collection"></i> Assets
           </a>
         </li>
 
+        <li class="nav-item">
+          <a class="nav-link mv-nav-link {% if current == 'watchlist' %}active{% endif %}"
+             href="{% url 'monitoring:watchlist' %}">
+            <i class="bi bi-star"></i> Watchlist
+            {% if watchlist_count > 0 %}
+              <span class="badge rounded-pill ms-1"
+                    style="background:rgba(13,148,136,0.85);font-size:9px;padding:2px 5px;">
+                {{ watchlist_count }}
+              </span>
+            {% endif %}
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link mv-nav-link {% if current == 'signals' %}active{% endif %}"
+             href="{% url 'monitoring:signals' %}">
+            <i class="bi bi-activity"></i> Signals
+            {% if sidebar_elevated_count > 0 %}
+              <span class="badge rounded-pill ms-1"
+                    style="background:rgba(245,158,11,0.9);font-size:9px;padding:2px 5px;">
+                {{ sidebar_elevated_count }}
+              </span>
+            {% endif %}
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link mv-nav-link {% if current == 'alert_list' or current == 'create_alert' or current == 'alert_add' %}active{% endif %}"
+             href="{% url 'monitoring:alert_list' %}">
+            <i class="bi bi-bell"></i> Alerts
+            {% if alert_count > 0 %}
+              <span class="badge rounded-pill ms-1"
+                    style="background:rgba(245,158,11,0.9);font-size:9px;padding:2px 5px;">
+                {{ alert_count }}
+              </span>
+            {% endif %}
+          </a>
+        </li>
+
+
+        <!-- ── Create alert CTA ── -->
         {% if user.is_authenticated %}
-          <li class="nav-item ms-lg-2 mv-mobile-actions">
-            <a href="{% url 'monitoring:create_alert' %}" class="btn mv-primary-btn d-inline-flex align-items-center gap-2">
+          <li class="nav-item ms-lg-2">
+            <a href="{% url 'monitoring:create_alert' %}"
+               class="btn mv-primary-btn d-inline-flex align-items-center gap-2">
               <i class="bi bi-plus-circle"></i>
               <span>Create Alert</span>
             </a>
           </li>
         {% endif %}
 
+        <!-- ── Admin link ── -->
         {% if user.is_staff %}
           <li class="nav-item">
             <a class="nav-link mv-nav-link mv-admin-link" href="/admin/">
@@ -75,28 +130,33 @@
           </li>
         {% endif %}
 
+        <!-- ── Auth ── -->
         {% if user.is_authenticated %}
           <li class="nav-item">
             <form method="post" action="{% url 'monitoring:logout' %}" class="m-0">
               {% csrf_token %}
-              <button type="submit" class="nav-link mv-nav-link btn btn-link text-decoration-none">
+              <button type="submit"
+                      class="nav-link mv-nav-link btn btn-link text-decoration-none">
                 <i class="bi bi-box-arrow-right"></i> Logout
               </button>
             </form>
           </li>
         {% else %}
           <li class="nav-item">
-            <a class="nav-link mv-nav-link {% if current == 'login' %}active{% endif %}" href="{% url 'monitoring:login' %}">
+            <a class="nav-link mv-nav-link {% if current == 'login' %}active{% endif %}"
+               href="{% url 'monitoring:login' %}">
               <i class="bi bi-box-arrow-in-right"></i> Login
             </a>
           </li>
         {% endif %}
+
       </ul>
     </div>
   </div>
 </nav>
 {% endwith %}
 
+<!-- ── Suite pipeline strip ── -->
 <section class="mv-suite-strip py-2">
   <div class="container-fluid px-3 px-lg-4">
     <div class="mv-suite-rail">
@@ -111,7 +171,9 @@
   </div>
 </section>
 
+<!-- ── Page content ── -->
 <main class="container-fluid px-3 px-lg-4 mv-page-shell">
+
   {% if messages %}
     <div class="mb-4">
       {% for message in messages %}
@@ -127,23 +189,30 @@
   {% endif %}
 
   {% block content %}{% endblock %}
+
 </main>
 
+<!-- ── Footer ── -->
 <footer class="mv-footer py-3">
   <div class="container-fluid px-3 px-lg-4 d-flex flex-column flex-lg-row justify-content-between gap-2">
     <div>MarketVista Dashboard — monitoring-first analyst visibility for your fintech suite.</div>
-    <div class="small">
-      DataBridge → MarketVista → RiskWise → TradeIntel
-    </div>
+    <div class="small">DataBridge → MarketVista → RiskWise → TradeIntel</div>
   </div>
 </footer>
 
+<!-- ── Scripts ── -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+    // Bootstrap tooltips
+    [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+      .forEach(el => new bootstrap.Tooltip(el));
+
+    // Dark mode persistence across pages
+    if (localStorage.getItem("mv-dark-mode") === "on") {
+      document.body.classList.add("dark-mode");
+    }
   });
 </script>
 

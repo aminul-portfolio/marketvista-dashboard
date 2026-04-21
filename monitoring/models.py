@@ -51,61 +51,6 @@ class PriceSnapshot(models.Model):
         return f"{self.asset.symbol} @ {self.price} ({self.timestamp})"
 
 
-class Trade(models.Model):
-    TRADE_TYPES = [
-        ("BUY", "Buy"),
-        ("SELL", "Sell"),
-    ]
-
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="trades",
-    )
-    asset = models.ForeignKey(
-        Asset,
-        on_delete=models.CASCADE,
-        related_name="trades",
-    )
-    trade_type = models.CharField(max_length=4, choices=TRADE_TYPES)
-    quantity = models.DecimalField(max_digits=20, decimal_places=8)
-    entry_price = models.DecimalField(max_digits=20, decimal_places=8)
-    exit_price = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
-    opened_at = models.DateTimeField(auto_now_add=True)
-    closed_at = models.DateTimeField(null=True, blank=True)
-    notes = models.TextField(blank=True)
-    notified = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ["-opened_at"]
-
-    def __str__(self):
-        return f"{self.user.username} - {self.get_trade_type_display()} {self.quantity} {self.asset.symbol}"
-
-    @property
-    def is_closed(self):
-        return self.exit_price is not None and self.closed_at is not None
-
-    @property
-    def pnl(self):
-        if not self.is_closed:
-            return None
-        if self.trade_type == "BUY":
-            return (self.exit_price - self.entry_price) * self.quantity
-        if self.trade_type == "SELL":
-            return (self.entry_price - self.exit_price) * self.quantity
-        return None
-
-    @property
-    def pnl_percentage(self):
-        if not self.is_closed:
-            return None
-        cost_basis = self.entry_price * self.quantity
-        if cost_basis == 0:
-            return None
-        return (self.pnl / cost_basis) * 100
-
-
 class Alert(models.Model):
     DIRECTION = [
         ("above", "Above"),
@@ -139,6 +84,7 @@ class PriceOHLC(models.Model):
     SOURCE_CHOICES = [
         ("twelve", "Twelve Data"),
         ("yahoo", "Yahoo Finance"),
+        ("demo_seed", "Demo Seed"),
     ]
 
     asset = models.ForeignKey(
@@ -152,7 +98,7 @@ class PriceOHLC(models.Model):
     low = models.DecimalField(max_digits=20, decimal_places=8)
     close = models.DecimalField(max_digits=20, decimal_places=8)
     volume = models.DecimalField(max_digits=20, decimal_places=2, default=0)
-    source = models.CharField(max_length=10, choices=SOURCE_CHOICES, default="twelve")
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default="twelve")
 
     class Meta:
         ordering = ["-timestamp"]
@@ -218,7 +164,12 @@ class MarketSignal(models.Model):
     severity = models.CharField(max_length=16, choices=SEVERITY_CHOICES)
     title = models.CharField(max_length=160)
     details = models.TextField(blank=True)
-    metric_value = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    metric_value = models.DecimalField(
+        max_digits=20,
+        decimal_places=8,
+        null=True,
+        blank=True,
+    )
     signal_timestamp = models.DateTimeField()
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -236,4 +187,8 @@ class MarketSignal(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.asset.symbol} - {self.get_signal_type_display()} - {self.severity}"
+        return (
+            f"{self.asset.symbol} - "
+            f"{self.get_signal_type_display()} - "
+            f"{self.severity}"
+        )

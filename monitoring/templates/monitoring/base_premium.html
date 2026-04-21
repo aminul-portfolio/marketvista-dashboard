@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="MarketVista — monitoring-first analyst visibility for the FinTech suite.">
+  <meta name="theme-color" content="#080d19">
+  <title>{% block title %}MarketVista{% endblock %} — MarketVista Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/premium_shell.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body style="background:#080d19;margin:0;padding:0;">
+
+<div class="mv-premium-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="mv-sidebar">
+
+    <div class="mv-logo">
+      <div class="mv-logo-dot">
+        <svg viewBox="0 0 16 16"><polyline points="2,10 6,6 10,9 14,4"/></svg>
+      </div>
+      <div>
+        <div class="mv-logo-name">MarketVista</div>
+        <div class="mv-logo-tag">Dashboard</div>
+      </div>
+    </div>
+
+    <div class="mv-nav-group">
+      <span class="mv-nav-label">Command Centre</span>
+      <a href="{% url 'monitoring:dashboard' %}"
+         class="mv-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <span class="mv-ni">◈</span>
+        <span class="mv-nl">Dashboard</span>
+      </a>
+    </div>
+
+    <div class="mv-nav-group">
+      <span class="mv-nav-label">Market</span>
+      <a href="{% url 'monitoring:asset_list' %}"
+         class="mv-nav-item {% if request.resolver_match.url_name == 'asset_list' or request.resolver_match.url_name == 'asset_detail' %}active{% endif %}">
+        <span class="mv-ni">◉</span>
+        <span class="mv-nl">Assets</span>
+      </a>
+    </div>
+
+    <div class="mv-nav-group">
+      <span class="mv-nav-label">Watchlist</span>
+      <a href="{% url 'monitoring:watchlist' %}"
+         class="mv-nav-item {% if request.resolver_match.url_name == 'watchlist' %}active{% endif %}">
+        <span class="mv-ni">★</span>
+        <span class="mv-nl">My Watchlist</span>
+        {% if watchlist_count > 0 %}
+          <span class="mv-nb">{{ watchlist_count }}</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="mv-nav-group">
+      <span class="mv-nav-label">Signals &amp; Alerts</span>
+      <a href="{% url 'monitoring:signals' %}"
+         class="mv-nav-item {% if request.resolver_match.url_name == 'signals' %}active{% endif %}">
+        <span class="mv-ni">▲</span>
+        <span class="mv-nl">Signals</span>
+        {% if sidebar_elevated_count > 0 %}
+          <span class="mv-nb amber">{{ sidebar_elevated_count }}</span>
+        {% endif %}
+      </a>
+      <a href="{% url 'monitoring:alert_list' %}"
+         class="mv-nav-item {% if request.resolver_match.url_name == 'alert_list' %}active{% endif %}">
+        <span class="mv-ni">◎</span>
+        <span class="mv-nl">Alerts</span>
+        {% if alert_count > 0 %}
+          <span class="mv-nb amber">{{ alert_count }}</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <div class="mv-nav-group">
+      <span class="mv-nav-label">FinTech Suite</span>
+      <span class="mv-nav-item" style="cursor:default;">
+        <span class="mv-ni">→</span>
+        <span class="mv-nl mv-muted">DataBridge</span>
+      </span>
+      <span class="mv-nav-item" style="cursor:default;">
+        <span class="mv-ni">→</span>
+        <span class="mv-nl mv-muted">RiskWise</span>
+      </span>
+      <span class="mv-nav-item" style="cursor:default;">
+        <span class="mv-ni">→</span>
+        <span class="mv-nl mv-muted">TradeIntel</span>
+      </span>
+    </div>
+
+    {% if user.is_authenticated %}
+      <div class="mv-avatar">
+        <div class="mv-av-circle">{{ user.username|slice:":2"|upper }}</div>
+        <div>
+          <div class="mv-av-name">{{ user.get_full_name|default:user.username }}</div>
+          <div class="mv-av-role">Analyst</div>
+        </div>
+      </div>
+    {% endif %}
+
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="mv-main">
+
+    <!-- Topbar -->
+    <div class="mv-topbar">
+      <div>
+        <div class="mv-tb-title">{% block page_title %}Dashboard{% endblock %}</div>
+        <div class="mv-tb-bread">{% block breadcrumb %}Command Centre{% endblock %}</div>
+      </div>
+      <div class="mv-tb-right">
+        {% block topbar_right %}
+          <div class="mv-pulse-wrap">
+            <div class="mv-pulse-dot"></div>
+            <span class="mv-pulse-txt">Live</span>
+          </div>
+          <span class="mv-freshness">
+            {% if freshness_signal %}
+              {{ freshness_signal.label }}
+              {% if freshness_signal.delay_minutes is not None %}
+                · {{ freshness_signal.delay_minutes }} min ago
+              {% endif %}
+            {% else %}
+              Updated now
+            {% endif %}
+          </span>
+        {% endblock %}
+      </div>
+    </div>
+
+    {% block attr_strip %}{% endblock %}
+
+    <!-- Messages -->
+    {% if messages %}
+      <div style="padding:10px 20px 0;">
+        {% for message in messages %}
+          <div class="mv-message {% if message.tags == 'error' %}error{% endif %}" style="margin-bottom:8px;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Page content -->
+    <div class="mv-content">
+      {% block page_content %}{% endblock %}
+    </div>
+
+  </div><!-- /mv-main -->
+
+</div><!-- /mv-premium-shell -->
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

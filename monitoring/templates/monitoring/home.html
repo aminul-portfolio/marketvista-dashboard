@@ -1,108 +1,192 @@
 {% extends "monitoring/base.html" %}
 
-{% block title %}Home - Trading Journal{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
-<div class="text-center mb-5">
-  <h1 class="display-4 fw-bold">Welcome to Your Trading Journal</h1>
-  <p class="lead text-muted">
-    Upload your trading data, monitor live markets, and generate professional reports.
-  </p>
+<div class="container-fluid py-4">
+
+  <div class="row g-4 mb-4 align-items-stretch">
+    <div class="col-12 col-xl-8">
+      <section class="mv-hero h-100 mv-animate-1">
+        <div class="mv-eyebrow">
+          <i class="bi bi-broadcast-pin"></i>
+          Monitoring-first landing surface
+        </div>
+        <div class="row g-4 mt-1 align-items-start">
+          <div class="col-12 col-lg-5">
+            <h1 class="mv-title">MarketVista Dashboard</h1>
+            <p class="mv-subtitle">
+              MarketVista is the monitoring layer in your four-project fintech workflow.
+              Review freshness, surface elevated signals, inspect watchlist assets,
+              and route important conditions into deeper analysis.
+            </p>
+            <div class="mv-chip-row">
+              <span class="mv-chip"><i class="bi bi-diagram-3"></i> Connected to your suite workflow</span>
+              <span class="mv-chip"><i class="bi bi-bell"></i> Alert-aware monitoring</span>
+              <span class="mv-chip"><i class="bi bi-bar-chart-line"></i> OHLC-backed dashboard</span>
+            </div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <div class="mv-hero-side h-100">
+              <div class="mv-hero-side-label">Product role</div>
+              <div class="mv-hero-side-value">Monitoring + analyst visibility</div>
+              <div class="mv-hero-side-note">
+                Use MarketVista to identify what changed, what is elevated, what is delayed,
+                and which assets deserve deeper review.
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="mv-hero-side h-100">
+              <div class="mv-hero-side-label">What this app answers</div>
+              <div class="mv-kv mt-3">
+                <div class="mv-kv-row"><span>What changed?</span><span>Signals</span></div>
+                <div class="mv-kv-row"><span>Can I trust the data?</span><span>Freshness</span></div>
+                <div class="mv-kv-row"><span>What needs attention?</span><span>Watchlist</span></div>
+                <div class="mv-kv-row"><span>Where do I inspect?</span><span>Charts + Tables</span></div>
+              </div>
+              <div class="mt-4">
+                <a href="{% url 'monitoring:dashboard' %}"
+                   class="btn mv-primary-btn w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                  <i class="bi bi-speedometer2"></i>
+                  <span>Open Monitoring Dashboard</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <div class="mv-panel-card h-100 mv-animate-2">
+        <div class="mv-block-header">
+          <span><i class="bi bi-grid-1x2 me-2"></i>Quick access</span>
+        </div>
+        <div class="mv-surface-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              <div class="mv-panel-card h-100" style="background:rgba(8,16,36,0.55);">
+                <div class="mv-surface-body">
+                  <div class="fw-semibold text-light mb-2"><i class="bi bi-speedometer2 me-2"></i>Dashboard</div>
+                  <div class="mv-section-note mb-3">Review signals, freshness, charts, price tables, and monitoring context.</div>
+                  <a href="{% url 'monitoring:dashboard' %}" class="btn btn-outline-info btn-sm w-100">Open Dashboard</a>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="mv-panel-card h-100" style="background:rgba(8,16,36,0.55);">
+                <div class="mv-surface-body">
+                  <div class="fw-semibold text-light mb-2"><i class="bi bi-star me-2"></i>Watchlist</div>
+                  <div class="mv-section-note mb-3">Track key assets and monitor their signal status in one surface.</div>
+                  <a href="{% url 'monitoring:watchlist' %}" class="btn btn-outline-info btn-sm w-100">View Watchlist</a>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="mv-panel-card h-100" style="background:rgba(8,16,36,0.55);">
+                <div class="mv-surface-body">
+                  <div class="fw-semibold text-light mb-2"><i class="bi bi-activity me-2"></i>Signals</div>
+                  <div class="mv-section-note mb-3">Review ELEVATED, WATCHLIST, and INFO signals across all tracked assets.</div>
+                  <a href="{% url 'monitoring:signals' %}" class="btn btn-outline-warning btn-sm w-100">View Signals</a>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="mv-panel-card h-100" style="background:rgba(8,16,36,0.55);">
+                <div class="mv-surface-body">
+                  <div class="fw-semibold text-light mb-2"><i class="bi bi-bell me-2"></i>Alerts</div>
+                  <div class="mv-section-note mb-3">Review current user alerts and keep monitoring attention aligned with important conditions.</div>
+                  <a href="{% url 'monitoring:alert_list' %}" class="btn btn-outline-light btn-sm w-100">View Alerts</a>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="mv-panel-card h-100" style="background:rgba(8,16,36,0.55);">
+                <div class="mv-surface-body">
+                  <div class="fw-semibold text-light mb-2"><i class="bi bi-plus-circle me-2"></i>Create Alert</div>
+                  <div class="mv-section-note mb-3">Add a price alert for a tracked asset and turn market conditions into an actionable trigger.</div>
+                  <a href="{% url 'monitoring:create_alert' %}" class="btn btn-outline-warning btn-sm w-100">Create Alert</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if user.is_staff %}
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="mv-panel-card mv-animate-3">
+        <div class="mv-block-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-shield-lock me-2"></i>Admin monitoring tools</span>
+          <span class="small">Staff access</span>
+        </div>
+        <div class="mv-surface-body d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+          <div class="mv-section-note">
+            Open Django admin to inspect assets, alerts, market signals, price snapshots, OHLC history, and watchlist items.
+          </div>
+          <a href="/admin/" class="btn btn-outline-warning btn-sm d-inline-flex align-items-center gap-2">
+            <i class="bi bi-gear"></i><span>Open Admin Panel</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-12 col-xl-4">
+      <section class="mv-panel-card h-100 mv-animate-3">
+        <div class="mv-block-header">
+          <span><i class="bi bi-activity me-2"></i>Monitoring priorities</span>
+        </div>
+        <div class="mv-surface-body">
+          <ul class="list-unstyled mb-0 d-grid gap-3">
+            <li class="mv-section-note">• Surface elevated signals before deeper planning</li>
+            <li class="mv-section-note">• Show freshness so analysts can judge trust</li>
+            <li class="mv-section-note">• Keep watchlist items visible in one place</li>
+            <li class="mv-section-note">• Back charts and tables with stored OHLC and snapshot data</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+    <div class="col-12 col-xl-4">
+      <section class="mv-panel-card h-100 mv-animate-4">
+        <div class="mv-block-header">
+          <span><i class="bi bi-arrow-left-right me-2"></i>Suite handoff</span>
+        </div>
+        <div class="mv-surface-body">
+          <div class="mv-kv">
+            <div class="mv-kv-row"><span>Upstream</span><span>DataBridge Market API</span></div>
+            <div class="mv-kv-row"><span>This layer</span><span>MarketVista</span></div>
+            <div class="mv-kv-row"><span>Next step</span><span>RiskWise Planner</span></div>
+            <div class="mv-kv-row"><span>Outcome review</span><span>TradeIntel 360</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="col-12 col-xl-4">
+      <section class="mv-panel-card h-100 mv-animate-5">
+        <div class="mv-block-header">
+          <span><i class="bi bi-shield-check me-2"></i>Reviewer-ready</span>
+        </div>
+        <div class="mv-surface-body">
+          <div class="mv-section-note mb-3">
+            This repo is packaged so a reviewer can inspect the dashboard, admin monitoring models,
+            and seeded demo state quickly.
+          </div>
+          <div class="mv-chip-row">
+            <span class="mv-chip">Seeded signals</span>
+            <span class="mv-chip">Admin inspectability</span>
+            <span class="mv-chip">Smoke tests</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
 </div>
-
-<div class="row g-4">
-  <!-- View Dashboard -->
-  <div class="col-md-4">
-    <div class="card feature-card h-100 text-center shadow-sm">
-      <div class="card-body">
-        <i class="bi bi-speedometer2 display-4 text-success"></i>
-        <h5 class="card-title mt-3">View Dashboard</h5>
-        <p class="text-muted">Explore KPIs, live prices, and performance charts.</p>
-        <a href="{% url 'monitoring:dashboard' %}" class="btn btn-success w-100">
-          <i class="bi bi-speedometer2"></i> Go to Dashboard
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- My Trades -->
-  <div class="col-md-4">
-    <div class="card feature-card h-100 text-center shadow-sm">
-      <div class="card-body">
-        <i class="bi bi-clipboard-data display-4 text-info"></i>
-        <h5 class="card-title mt-3">My Trades</h5>
-        <p class="text-muted">Review, edit, or export your trade history.</p>
-        <a href="{% url 'monitoring:trade_list' %}" class="btn btn-info w-100">
-          <i class="bi bi-clipboard-data"></i> View Trades
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Download Reports -->
-  <div class="col-md-4">
-    <div class="card feature-card h-100 text-center shadow-sm">
-      <div class="card-body">
-        <i class="bi bi-file-earmark-arrow-down display-4 text-warning"></i>
-        <h5 class="card-title mt-3">Download Reports</h5>
-        <p class="text-muted">Generate PDF, Excel, or CSV reports.</p>
-        <a href="{% url 'monitoring:dashboard' %}" class="btn btn-warning w-100">
-          <i class="bi bi-download"></i> View Reports
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Risk Calculator -->
-  <div class="col-md-4">
-    <div class="card feature-card h-100 text-center shadow-sm">
-      <div class="card-body">
-        <i class="bi bi-calculator display-4 text-danger"></i>
-        <h5 class="card-title mt-3">Risk Calculator</h5>
-        <p class="text-muted">Plan position sizing and manage risk.</p>
-        <a href="{% url 'monitoring:unified_risk_calculator' %}" class="btn btn-danger w-100">
-          <i class="bi bi-calculator"></i> Calculate Risk
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Alerts -->
-  <div class="col-md-4">
-    <div class="card feature-card h-100 text-center shadow-sm">
-      <div class="card-body">
-        <i class="bi bi-bell display-4 text-secondary"></i>
-        <h5 class="card-title mt-3">Price Alerts</h5>
-        <p class="text-muted">Manage and create price alerts for your assets.</p>
-        <a href="{% url 'monitoring:alert_list' %}" class="btn btn-secondary w-100">
-          <i class="bi bi-bell"></i> View Alerts
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Project Overview -->
-  <div class="col-md-4">
-    <div class="card feature-card h-100 text-center shadow-sm">
-      <div class="card-body">
-        <i class="bi bi-info-circle display-4 text-dark"></i>
-        <h5 class="card-title mt-3">Project Overview</h5>
-        <p class="text-muted">See what this trading journal can do for you.</p>
-        <a href="{% url 'monitoring:overview' %}" class="btn btn-dark w-100">
-          <i class="bi bi-info-circle"></i> Learn More
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
-
-{% if user.is_staff %}
-<div class="mt-5">
-  <h3>⚙️ Admin Tools</h3>
-  <p class="text-muted">Manage all user data and settings.</p>
-  <a href="/admin/" class="btn btn-warning">
-    <i class="bi bi-gear"></i> Open Admin Panel
-  </a>
-</div>
-{% endif %}
 {% endblock %}

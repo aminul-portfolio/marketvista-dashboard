@@ -1,0 +1,132 @@
+{% extends "monitoring/base_premium.html" %}
+{% load static %}
+
+{% block title %}Watchlist{% endblock %}
+
+{% block page_title %}My Watchlist{% endblock %}
+
+{% block breadcrumb %}Command Centre › Watchlist{% endblock %}
+
+{% block topbar_right %}
+  <span class="mv-freshness">{{ total_count }} asset{{ total_count|pluralize }} tracked</span>
+{% endblock %}
+
+{% block page_content %}
+
+<!-- Summary cards -->
+<div class="mv-three-col">
+  <div class="mv-sum-card">
+    <div class="mv-sum-eye">Assets on Watchlist</div>
+    <div class="mv-sum-val">{{ total_count }}</div>
+    <div class="mv-sum-sub">Across monitored asset classes</div>
+  </div>
+  <div class="mv-sum-card">
+    <div class="mv-sum-eye">Elevated Signals</div>
+    <div class="mv-sum-val" style="color:#f97316;">{{ elevated_on_watchlist }}</div>
+    <div class="mv-sum-sub">Ready for RiskWise planning</div>
+  </div>
+  <div class="mv-sum-card">
+    <div class="mv-sum-eye">Active Alerts</div>
+    <div class="mv-sum-val" style="color:#f59e0b;">{{ active_alerts_count }}</div>
+    <div class="mv-sum-sub">User-defined thresholds</div>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="mv-toolbar">
+  <div class="mv-search-wrap">
+    <input class="mv-search-input" id="wl-search" placeholder="Search watchlist…" oninput="filterWatchlist(this.value)">
+  </div>
+  <div class="mv-tb-right-btns">
+    <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary">+ Add asset</a>
+    <a href="{% url 'monitoring:export_prices_csv' %}" class="mv-btn">Export CSV</a>
+  </div>
+</div>
+
+<!-- Watchlist table -->
+{% if watchlist_items %}
+<div class="mv-wl-table" id="wl-table">
+  <div class="mv-wl-thead">
+    <div class="mv-th">Asset</div>
+    <div class="mv-th">Latest Price</div>
+    <div class="mv-th">3-day move</div>
+    <div class="mv-th">Signals</div>
+    <div class="mv-th">Added</div>
+    <div class="mv-th"></div>
+  </div>
+  {% for row in watchlist_items %}
+  <div class="mv-wl-row" data-name="{{ row.item.asset.name|lower }} {{ row.item.asset.symbol|lower }}">
+    <div class="mv-wr-asset">
+      <div class="mv-wr-icon {{ row.item.asset.asset_type }}">
+        {{ row.item.asset.symbol|slice:":2" }}
+      </div>
+      <div>
+        <div class="mv-wr-name">
+          {{ row.item.asset.name }}
+          <span class="mv-cls-chip">{{ row.item.asset.get_asset_type_display }}</span>
+        </div>
+        <div class="mv-wr-sym">{{ row.item.asset.symbol }}</div>
+      </div>
+    </div>
+    <div class="mv-wr-price">
+      {% if row.latest_price %}
+        ${{ row.latest_price.price|floatformat:2 }}
+      {% else %}
+        <span class="mv-muted">—</span>
+      {% endif %}
+    </div>
+    <div class="mv-wr-chg {% if row.pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
+      {% if row.pct_move is not None %}
+        {% if row.pct_move >= 0 %}+{% endif %}{{ row.pct_move|floatformat:2 }}%
+      {% else %}
+        <span class="mv-muted">—</span>
+      {% endif %}
+    </div>
+    <div class="mv-sig-badge">
+      <div class="mv-sb-dot" style="background:{{ row.badge_color }};"></div>
+      <span class="mv-sb-n">{{ row.badge_text }}</span>
+    </div>
+    <div style="font-size:10px;color:rgba(255,255,255,0.25);">
+      {{ row.item.created_at|date:"d M" }}
+    </div>
+    <div class="mv-wr-actions">
+      <a href="{% url 'monitoring:asset_detail' row.item.asset.symbol %}" class="mv-view-link">View →</a>
+      <form method="post" action="{% url 'monitoring:watchlist_remove' row.item.asset.symbol %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="mv-remove-btn" title="Remove from watchlist">✕</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="mv-empty">
+  <div style="font-size:24px;margin-bottom:8px;opacity:0.3;">★</div>
+  <div>No assets on your watchlist yet.</div>
+  <div style="margin-top:8px;">
+    <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary" style="display:inline-flex;margin-top:8px;">Browse assets →</a>
+  </div>
+</div>
+{% endif %}
+
+<!-- Export row -->
+{% if watchlist_items %}
+<div class="mv-export-row">
+  <span class="mv-export-txt">Export your watchlist for analyst review or offline planning</span>
+  <a href="{% url 'monitoring:export_prices_csv' %}" class="mv-btn">Download CSV</a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterWatchlist(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#wl-table .mv-wl-row').forEach(row => {
+    const name = row.dataset.name || '';
+    row.style.display = name.includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     "monitoring",
     "crispy_forms",
     "crispy_bootstrap5",
-    "analysis",
     "widget_tweaks",
 ]
 

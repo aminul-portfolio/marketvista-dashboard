@@ -28,7 +28,16 @@ class PriceSnapshotAdmin(admin.ModelAdmin):
 
 @admin.register(PriceOHLC)
 class PriceOHLCAdmin(admin.ModelAdmin):
-    list_display = ("asset", "timestamp", "open", "high", "low", "close", "volume", "source")
+    list_display = (
+        "asset",
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "source",
+    )
     search_fields = ("asset__symbol", "asset__name", "source")
     list_filter = ("asset", "source")
     ordering = ("-timestamp",)
@@ -36,23 +45,43 @@ class PriceOHLCAdmin(admin.ModelAdmin):
 
 @admin.register(MarketSignal)
 class MarketSignalAdmin(admin.ModelAdmin):
-    list_display = ("asset", "signal_type", "severity", "is_active", "signal_timestamp")
-    search_fields = ("asset__symbol", "asset__name", "signal_type", "title", "details")
+    list_display = (
+        "asset",
+        "signal_type",
+        "severity",
+        "is_active",
+        "signal_timestamp",
+    )
+    search_fields = (
+        "asset__symbol",
+        "asset__name",
+        "signal_type",
+        "title",
+        "details",
+    )
     list_filter = ("severity", "signal_type", "is_active")
     ordering = ("-signal_timestamp",)
 
 
 @admin.register(Alert)
 class AlertAdmin(admin.ModelAdmin):
-    list_display = ("id", "asset")
-    search_fields = ("asset__symbol", "asset__name")
-    list_filter = ("asset",)
-    ordering = ("-id",)
+    list_display = (
+        "user",
+        "asset",
+        "target_price",
+        "direction",
+        "is_triggered",
+        "is_notified",
+        "created_at",
+    )
+    search_fields = ("user__username", "asset__symbol", "asset__name")
+    list_filter = ("direction", "is_triggered", "is_notified", "asset")
+    ordering = ("-created_at",)
 
 
 @admin.register(WatchlistItem)
 class WatchlistItemAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "asset")
+    list_display = ("user", "asset", "note", "created_at")
     search_fields = ("user__username", "asset__symbol", "asset__name", "note")
-    list_filter = ("asset",)
-    ordering = ("-id",)
+    list_filter = ("asset", "created_at")
+    ordering = ("-created_at",)

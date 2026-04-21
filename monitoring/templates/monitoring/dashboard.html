@@ -2,54 +2,51 @@
 {% load static %}
 {% load tz %}
 
-{% block title %}Dashboard - MarketVista{% endblock %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 dashboard-page mv-dashboard">
+<div class="container-fluid py-4 mv-dashboard">
 
-  <div class="mv-dashboard-topbar d-flex justify-content-end align-items-center mb-3">
-    <div class="form-check form-switch ms-auto">
-      <input class="form-check-input" type="checkbox" id="themeToggle">
-      <label class="form-check-label" for="themeToggle">🌙 Dark Mode</label>
-    </div>
-  </div>
-
+  <!-- ── Hero + Freshness ───────────────────────────────────── -->
   <div class="row g-4 mb-4 align-items-stretch">
     <div class="col-12 col-xl-8">
-      <section class="mv-hero h-100">
+      <section class="mv-hero h-100 mv-animate-1">
         <div class="mv-eyebrow">
           <i class="bi bi-broadcast-pin"></i>
           Monitoring Command Surface
         </div>
-
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-4 mt-3">
           <div class="flex-grow-1">
             <h1 class="mv-title">MarketVista Dashboard</h1>
             <p class="mv-subtitle">
-              Analyst-first monitoring for live signals, asset visibility, alert review, and market context before deeper planning or post-trade review.
+              Analyst-first monitoring for live signals, asset visibility, alert review,
+              and market context before deeper planning or post-trade review.
             </p>
-
             <div class="mv-chip-row">
               <span class="mv-chip">
                 <i class="bi bi-activity"></i>
-                {{ latest_signals|length }} active signals
+                {{ latest_signals|length }} active signal{{ latest_signals|length|pluralize }}
               </span>
               <span class="mv-chip">
                 <i class="bi bi-bell"></i>
-                {{ active_alerts_count }} pending alerts
+                {{ active_alerts_count }} pending alert{{ active_alerts_count|pluralize }}
               </span>
               <span class="mv-chip">
                 <i class="bi bi-bookmark-star"></i>
-                {{ watchlist_items|length }} watchlist items
+                {{ watchlist_items|length }} watchlist item{{ watchlist_items|length|pluralize }}
               </span>
             </div>
           </div>
-
           <div class="mv-hero-side">
             <div class="mv-hero-side-label">Monitoring source</div>
             <div class="mv-hero-side-value">DataBridge Market API</div>
             <div class="mv-hero-side-note">
-              Use MarketVista to identify what changed, what is elevated, and which assets should route into deeper analysis.
+              Use MarketVista to identify what changed, what is elevated,
+              and which assets should route into deeper analysis.
             </div>
           </div>
         </div>
@@ -57,15 +54,11 @@
     </div>
 
     <div class="col-12 col-xl-4">
-      <div class="mv-meta-rail h-100">
+      <div class="mv-meta-rail h-100 mv-animate-2">
         <section class="mv-ops-card p-3">
-          <div class="mv-ops-label">Snapshot freshness</div>
-
+          <div class="mv-ops-label">Snapshot Freshness</div>
           {% if freshness_signal.status == "fresh" %}
-            <div class="mv-fresh-badge is-fresh">
-              <i class="bi bi-check-circle-fill"></i>
-              {{ freshness_signal.label }}
-            </div>
+            <div class="mv-fresh-badge is-fresh">{{ freshness_signal.label }}</div>
           {% elif freshness_signal.status == "delayed" %}
             <div class="mv-fresh-badge is-delayed">
               <i class="bi bi-exclamation-circle-fill"></i>
@@ -77,27 +70,14 @@
               {{ freshness_signal.label }}
             </div>
           {% endif %}
-
           <div class="mv-kv mt-3">
             <div class="mv-kv-row">
               <span>Delay Minutes</span>
-              <span>
-                {% if freshness_signal.delay_minutes is not None %}
-                  {{ freshness_signal.delay_minutes }}
-                {% else %}
-                  —
-                {% endif %}
-              </span>
+              <span>{% if freshness_signal.delay_minutes is not None %}{{ freshness_signal.delay_minutes }}{% else %}—{% endif %}</span>
             </div>
             <div class="mv-kv-row">
               <span>Last Updated</span>
-              <span>
-                {% if freshness_signal.last_updated %}
-                  {{ freshness_signal.last_updated|date:"Y-m-d H:i:s" }}
-                {% else %}
-                  —
-                {% endif %}
-              </span>
+              <span>{% if freshness_signal.last_updated %}{{ freshness_signal.last_updated|date:"Y-m-d H:i:s" }}{% else %}—{% endif %}</span>
             </div>
             <div class="mv-kv-row">
               <span>Dashboard Sync</span>
@@ -105,8 +85,7 @@
             </div>
           </div>
         </section>
-
-        <div class="row g-3">
+        <div class="row g-3 mt-1">
           <div class="col-6">
             <div class="mv-mini-stat">
               <div class="mv-mini-stat-label">Active Alerts</div>
@@ -124,45 +103,39 @@
     </div>
   </div>
 
+  <!-- ── KPI stat cards ─────────────────────────────────────── -->
   <div class="row g-4 mb-5">
     <div class="col-12 col-md-6 col-xl-3">
-      <div class="mv-stat-card mv-blue">
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="icon">📌</div>
-          <i class="bi bi-broadcast-pin fs-2 opacity-75"></i>
+      <div class="mv-stat-card mv-blue mv-animate-1">
+        <div class="d-flex justify-content-between align-items-start">
+          <i class="bi bi-broadcast-pin fs-2 opacity-50 mv-stat-icon" style="position:static"></i>
         </div>
         <div class="mv-stat-label">Assets Tracked</div>
         <div class="mv-stat-value">{{ tracked_assets_count }}</div>
       </div>
     </div>
-
     <div class="col-12 col-md-6 col-xl-3">
-      <div class="mv-stat-card mv-cyan">
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="icon">🚨</div>
-          <i class="bi bi-bell-fill fs-2 opacity-75"></i>
+      <div class="mv-stat-card mv-cyan mv-animate-2">
+        <div class="d-flex justify-content-between align-items-start">
+          <i class="bi bi-bell-fill fs-2 opacity-50" style="position:static"></i>
         </div>
         <div class="mv-stat-label">Active Alerts</div>
         <div class="mv-stat-value">{{ active_alerts_count }}</div>
       </div>
     </div>
-
     <div class="col-12 col-md-6 col-xl-3">
-      <div class="mv-stat-card mv-emerald">
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="icon">📡</div>
-          <i class="bi bi-activity fs-2 opacity-75"></i>
+      <div class="mv-stat-card mv-emerald mv-animate-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <i class="bi bi-activity fs-2 opacity-50" style="position:static"></i>
         </div>
         <div class="mv-stat-label">Signals Today</div>
         <div class="mv-stat-value">{{ latest_signals|length }}</div>
       </div>
     </div>
-
     <div class="col-12 col-md-6 col-xl-3">
-      <div class="mv-stat-card mv-purple">
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="icon">🔥</div>
-          <i class="bi bi-exclamation-octagon fs-2 opacity-75"></i>
+      <div class="mv-stat-card mv-purple mv-animate-4">
+        <div class="d-flex justify-content-between align-items-start">
+          <i class="bi bi-exclamation-octagon fs-2 opacity-50" style="position:static"></i>
         </div>
         <div class="mv-stat-label">Elevated Signals</div>
         <div class="mv-stat-value">{{ elevated_signals_count }}</div>
@@ -170,38 +143,37 @@
     </div>
   </div>
 
+  <!-- ── Signals + Operational Status ──────────────────────── -->
   <div class="row g-4 mb-5">
     <div class="col-12 col-xl-8">
       <section class="mv-panel-card h-100">
         <div class="mv-block-header d-flex justify-content-between align-items-center">
           <span><i class="bi bi-broadcast me-2"></i>Latest Signals</span>
-          <span class="small">Active monitoring events</span>
+          <span class="mv-live-dot">Live</span>
         </div>
-
         <div class="mv-surface-body">
           {% if latest_signals %}
             <div class="mv-signal-list">
               {% for signal in latest_signals %}
-                <article class="mv-signal-item">
+                <article class="mv-signal-item
+                  {% if signal.severity == 'ELEVATED' %}is-elevated-item
+                  {% elif signal.severity == 'WATCHLIST' %}is-watchlist-item
+                  {% else %}is-info-item{% endif %}">
                   <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                     <div class="flex-grow-1">
                       <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                         <span class="mv-signal-symbol">{{ signal.asset.symbol }}</span>
-                        <span class="mv-signal-type">{{ signal.signal_type|cut:"_" }}</span>
+                        <span class="mv-signal-type">{{ signal.get_signal_type_display }}</span>
                       </div>
-
                       <div class="mv-signal-title">{{ signal.title }}</div>
-
                       <div class="mv-section-note mt-1">
                         {{ signal.details|default:"No additional signal details available." }}
                       </div>
-
                       <div class="mv-signal-meta mt-2">
                         {{ signal.signal_timestamp|date:"Y-m-d H:i" }}
                       </div>
                     </div>
-
-                    <div class="text-end">
+                    <div class="text-end flex-shrink-0">
                       {% if signal.severity == "ELEVATED" %}
                         <span class="mv-severity is-elevated">ELEVATED</span>
                       {% elif signal.severity == "WATCHLIST" %}
@@ -209,13 +181,20 @@
                       {% else %}
                         <span class="mv-severity is-info">INFO</span>
                       {% endif %}
+                      <div class="mt-2">
+                        <a href="{% url 'monitoring:asset_detail' signal.asset.symbol %}"
+                           class="btn btn-outline-info btn-sm">View asset →</a>
+                      </div>
                     </div>
                   </div>
                 </article>
               {% endfor %}
             </div>
           {% else %}
-            <div class="mv-empty-state">No active signals are currently available.</div>
+            <div class="mv-empty-state">
+              <i class="bi bi-broadcast mb-3 d-block fs-2 opacity-25"></i>
+              No active signals available. Run seed_demo_data to populate monitoring context.
+            </div>
           {% endif %}
         </div>
       </section>
@@ -223,12 +202,12 @@
 
     <div class="col-12 col-xl-4">
       <div class="d-grid gap-4">
+
         <section class="mv-panel-card">
           <div class="mv-block-header d-flex justify-content-between align-items-center">
             <span><i class="bi bi-compass me-2"></i>Operational Status</span>
             <span class="small">Monitoring health</span>
           </div>
-
           <div class="mv-surface-body">
             {% if top_mover %}
               <div class="mv-top-mover-card mb-3">
@@ -247,23 +226,15 @@
                 </div>
               </div>
             {% endif %}
-
             <div class="mv-kv">
-              <div class="mv-kv-row">
-                <span>Tracked Assets</span>
-                <span>{{ tracked_assets_count }}</span>
-              </div>
-              <div class="mv-kv-row">
-                <span>Signals in Context</span>
-                <span>{{ latest_signals|length }}</span>
-              </div>
-              <div class="mv-kv-row">
-                <span>Pending Alerts</span>
-                <span>{{ active_alerts_count }}</span>
-              </div>
+              <div class="mv-kv-row"><span>Tracked Assets</span><span>{{ tracked_assets_count }}</span></div>
+              <div class="mv-kv-row"><span>Signals in Context</span><span>{{ latest_signals|length }}</span></div>
+              <div class="mv-kv-row"><span>Pending Alerts</span><span>{{ active_alerts_count }}</span></div>
               <div class="mv-kv-row">
                 <span>Elevated Signals</span>
-                <span>{{ elevated_signals_count }}</span>
+                <span style="color:{% if elevated_signals_count > 0 %}#fb923c{% else %}inherit{% endif %}">
+                  {{ elevated_signals_count }}
+                </span>
               </div>
             </div>
           </div>
@@ -272,99 +243,109 @@
         <section class="mv-panel-card">
           <div class="mv-block-header d-flex justify-content-between align-items-center">
             <span><i class="bi bi-bookmark-star me-2"></i>Watchlist Quick View</span>
-            <span class="small">{{ watchlist_items|length }} tracked</span>
+            <a href="{% url 'monitoring:watchlist' %}" class="small text-decoration-none" style="color:rgba(13,148,136,0.9)">
+              {{ watchlist_items|length }} tracked →
+            </a>
           </div>
-
           <div class="mv-surface-body">
             {% if watchlist_items %}
               <div class="mv-signal-list">
                 {% for item in watchlist_items %}
-                  <div class="mv-signal-item">
-                    <div class="mv-signal-symbol">{{ item.asset.symbol }}</div>
-                    <div class="mv-section-note">{{ item.asset.name }}</div>
-                    {% if item.note %}
-                      <div class="mv-signal-meta mt-2">{{ item.note }}</div>
-                    {% endif %}
+                  <div class="mv-signal-item is-info-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <div class="mv-signal-symbol">{{ item.asset.symbol }}</div>
+                        <div class="mv-section-note">{{ item.asset.name }}</div>
+                        {% if item.note %}
+                          <div class="mv-signal-meta mt-1">{{ item.note }}</div>
+                        {% endif %}
+                      </div>
+                      <a href="{% url 'monitoring:asset_detail' item.asset.symbol %}"
+                         class="btn btn-outline-info btn-sm">View →</a>
+                    </div>
                   </div>
                 {% endfor %}
               </div>
             {% else %}
               <div class="mv-empty-state">
-                No watchlist items yet. Add tracked assets here later to turn this panel into your analyst priority queue.
+                No watchlist items yet.
+                <a href="{% url 'monitoring:watchlist' %}" class="btn btn-outline-info btn-sm mt-2 d-block">
+                  Add assets →
+                </a>
               </div>
             {% endif %}
           </div>
         </section>
+
       </div>
     </div>
   </div>
 
+  <!-- ── Market Controls ────────────────────────────────────── -->
   <div class="card shadow-sm border-0 card-section mb-5">
     <div class="card-header bg-themed d-flex justify-content-between align-items-center">
-      <span>⚙️ Market Controls</span>
+      <span><i class="bi bi-sliders me-2"></i>Market Controls</span>
       <span class="small text-light">Chart and alert interaction controls</span>
     </div>
     <div class="card-body mv-controls-body">
       <div class="row g-4 align-items-end">
         <div class="col-12 col-lg-4">
-          <label for="timeRange" class="form-label">⏳ Time Range</label>
+          <label for="timeRange" class="form-label">Time Range</label>
           <select id="timeRange" class="form-select form-select-sm">
             <option value="30m" selected>Last 30 Min</option>
             <option value="1h">1 Hour</option>
             <option value="24h">24 Hours</option>
           </select>
         </div>
-
         <div class="col-12 col-lg-4">
-          <label for="volumeControl" class="form-label">🔊 Alert Volume</label>
+          <label for="volumeControl" class="form-label">Alert Volume</label>
           <input id="volumeControl" type="range" min="0" max="1" step="0.1" value="0.5" class="form-range">
         </div>
-
         <div class="col-12 col-lg-4">
           <div class="mv-control-actions">
-            <button id="muteButton" type="button" class="btn btn-outline-light btn-sm">🔈 Mute</button>
-            <button id="playTestSound" type="button" class="btn btn-outline-warning btn-sm">🔊 Test Sound</button>
+            <button id="muteButton" type="button" class="btn btn-outline-light btn-sm">
+              <i class="bi bi-volume-mute"></i> Mute
+            </button>
+            <button id="playTestSound" type="button" class="btn btn-outline-warning btn-sm">
+              <i class="bi bi-volume-up"></i> Test Sound
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- ── Charts ─────────────────────────────────────────────── -->
   <div class="row g-4 mb-5">
     <div class="col-12 col-xl-6">
       <div class="card shadow-sm chart-card h-100">
         <div class="card-header bg-themed d-flex justify-content-between align-items-center">
-          <div>📉 Line Price History Chart</div>
+          <span><i class="bi bi-graph-up me-2"></i>Line Price History Chart</span>
           <small class="text-light">Last updated: <span id="lineChartLastUpdated">—</span></small>
         </div>
-
         <div class="card-body">
           <div class="mv-chart-toolbar">
             <div class="mv-toolbar-field">
-              <label for="lineChartSymbol" class="form-label">📌 Asset</label>
+              <label for="lineChartSymbol" class="form-label">Asset</label>
               <select id="lineChartSymbol" class="form-select form-select-sm">
                 {% for symbol in symbols %}
                   <option value="{{ symbol }}">{{ symbol }}</option>
                 {% endfor %}
               </select>
             </div>
-
             <div class="mv-toolbar-field">
-              <label for="lineStartDate" class="form-label">📅 Start</label>
-              <input type="date" id="lineStartDate" class="form-control form-control-sm" />
+              <label for="lineStartDate" class="form-label">Start</label>
+              <input type="date" id="lineStartDate" class="form-control form-control-sm">
             </div>
-
             <div class="mv-toolbar-field">
-              <label for="lineEndDate" class="form-label">📅 End</label>
-              <input type="date" id="lineEndDate" class="form-control form-control-sm" />
+              <label for="lineEndDate" class="form-label">End</label>
+              <input type="date" id="lineEndDate" class="form-control form-control-sm">
             </div>
-
             <div class="mv-toolbar-action">
               <button class="btn btn-outline-info btn-sm" type="button" onclick="applyLineChartRange()">Apply</button>
             </div>
           </div>
-
-          <div id="priceHistoryChart" style="height: 380px;"></div>
+          <div id="priceHistoryChart" style="height:380px;"></div>
         </div>
       </div>
     </div>
@@ -372,54 +353,49 @@
     <div class="col-12 col-xl-6">
       <div class="card shadow-sm chart-card h-100">
         <div class="card-header bg-themed d-flex justify-content-between align-items-center">
-          <div>🕯️ Candlestick Chart (with Volume)</div>
+          <span><i class="bi bi-bar-chart-line me-2"></i>Candlestick Chart — with Volume</span>
           <small class="text-light">Last updated: <span id="candlestickLastUpdated">—</span></small>
         </div>
-
         <div class="card-body">
           <div class="mv-chart-toolbar mv-chart-toolbar-wide">
             <div class="mv-toolbar-field">
-              <label for="candlestickSymbol" class="form-label">📌 Asset</label>
+              <label for="candlestickSymbol" class="form-label">Asset</label>
               <select id="candlestickSymbol" class="form-select form-select-sm">
                 {% for symbol in symbols %}
                   <option value="{{ symbol }}">{{ symbol }}</option>
                 {% endfor %}
               </select>
             </div>
-
             <div class="mv-toolbar-field">
-              <label for="candleStartDate" class="form-label">📅 Start</label>
-              <input type="date" id="candleStartDate" class="form-control form-control-sm" />
+              <label for="candleStartDate" class="form-label">Start</label>
+              <input type="date" id="candleStartDate" class="form-control form-control-sm">
             </div>
-
             <div class="mv-toolbar-field">
-              <label for="candleEndDate" class="form-label">📅 End</label>
-              <input type="date" id="candleEndDate" class="form-control form-control-sm" />
+              <label for="candleEndDate" class="form-label">End</label>
+              <input type="date" id="candleEndDate" class="form-control form-control-sm">
             </div>
-
             <div class="mv-toolbar-action">
-              <button class="btn btn-outline-primary btn-sm" type="button" onclick="applyCandlestickRange()">Apply</button>
+              <button class="btn btn-outline-info btn-sm" type="button" onclick="applyCandlestickRange()">Apply</button>
             </div>
           </div>
-
-          <div id="candlestickChart" style="height: 410px;"></div>
+          <div id="candlestickChart" style="height:410px;"></div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- ── Live Price Table ───────────────────────────────────── -->
   <div class="card shadow-sm mb-5 table-card">
     <div class="card-header bg-themed d-flex justify-content-between align-items-center">
-      <span>📋 Live Price Table</span>
+      <span><i class="bi bi-table me-2"></i>Live Price Table</span>
       <span class="small text-light">{{ snapshots|length }} rows</span>
     </div>
-
     <div class="card-body table-responsive px-0">
       <div class="mv-table-toolbar px-3 mb-3">
         <div class="mv-table-toolbar-note">Most recent snapshot values for monitored assets.</div>
         <div class="d-flex justify-content-end align-items-center gap-2">
-          <label for="livePriceSymbolFilter" class="form-label mb-0">🔍 Filter by Symbol</label>
-          <select id="livePriceSymbolFilter" class="form-select form-select-sm" style="max-width: 200px;">
+          <label for="livePriceSymbolFilter" class="form-label mb-0">Filter by Symbol</label>
+          <select id="livePriceSymbolFilter" class="form-select form-select-sm" style="max-width:200px;">
             <option value="">All Symbols</option>
             {% for symbol in symbols %}
               <option value="{{ symbol }}">{{ symbol }}</option>
@@ -427,44 +403,41 @@
           </select>
         </div>
       </div>
-
       <table id="price-table" class="table table-striped table-hover align-middle text-center mb-0">
         <thead class="table-primary">
           <tr>
-            <th>🔠 Symbol</th>
-            <th>💲 Price</th>
-            <th>🕒 Time (UTC)</th>
+            <th>Symbol</th>
+            <th>Price</th>
+            <th>Time (UTC)</th>
           </tr>
         </thead>
         <tbody>
           {% for snapshot in snapshots %}
             <tr>
-              <td class="fw-semibold">{{ snapshot.asset.symbol }}</td>
+              <td class="fw-semibold text-start ps-4">{{ snapshot.asset.symbol }}</td>
               <td>${{ snapshot.price|floatformat:2 }}</td>
               <td class="text-muted">{% localtime on %}{{ snapshot.timestamp|date:"F j, Y H:i" }}{% endlocaltime %}</td>
             </tr>
           {% empty %}
-            <tr>
-              <td colspan="3" class="text-danger text-center">🚫 No price snapshot data available.</td>
-            </tr>
+            <tr><td colspan="3" class="text-center py-4">No price snapshot data available.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 
+  <!-- ── Recent OHLC Table ──────────────────────────────────── -->
   <div class="card shadow-sm mb-5 table-card">
-    <div class="card-header bg-themed fw-bold d-flex justify-content-between align-items-center">
-      <span>📈 Recent OHLC Candles</span>
+    <div class="card-header bg-themed d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-bar-chart-steps me-2"></i>Recent OHLC Candles</span>
       <span class="small text-light">{{ ohlc|length }} rows</span>
     </div>
-
     <div class="card-body table-responsive">
       <div class="mv-table-toolbar mb-3">
         <div class="mv-table-toolbar-note">Historical OHLC monitoring data supporting charts and signal generation.</div>
         <div class="d-flex justify-content-end align-items-center gap-2">
-          <label for="ohlcSymbolFilter" class="form-label mb-0">🔍 Filter by Symbol</label>
-          <select id="ohlcSymbolFilter" class="form-select form-select-sm" style="max-width: 200px;">
+          <label for="ohlcSymbolFilter" class="form-label mb-0">Filter by Symbol</label>
+          <select id="ohlcSymbolFilter" class="form-select form-select-sm" style="max-width:200px;">
             <option value="">All Symbols</option>
             {% for symbol in symbols %}
               <option value="{{ symbol }}">{{ symbol }}</option>
@@ -472,18 +445,17 @@
           </select>
         </div>
       </div>
-
       <table id="ohlcTable" class="table table-striped align-middle text-center w-100">
         <thead class="table-success">
           <tr>
-            <th>🔠 Symbol</th>
-            <th>🕒 Time (UTC)</th>
-            <th>🔓 Open</th>
-            <th>🚀 High</th>
-            <th>📉 Low</th>
-            <th>✅ Close</th>
-            <th>🔊 Volume</th>
-            <th>📦 Source</th>
+            <th>Symbol</th>
+            <th>Time (UTC)</th>
+            <th>Open</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Close</th>
+            <th>Volume</th>
+            <th>Source</th>
           </tr>
         </thead>
         <tbody>
@@ -499,18 +471,32 @@
               <td>{{ candle.source|title }}</td>
             </tr>
           {% empty %}
-            <tr>
-              <td colspan="8" class="text-center text-warning">⚠️ No OHLC data available.</td>
-            </tr>
+            <tr><td colspan="8" class="text-center py-4">No OHLC data available.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 
-  <audio id="alertSound" src="{% static 'sounds/sound_up.mp3' %}" preload="auto"></audio>
-  <audio id="soundAbove" src="{% static 'sounds/sound_up.mp3' %}" preload="auto"></audio>
-  <audio id="soundBelow" src="{% static 'sounds/sound_down.mp3' %}" preload="auto"></audio>
+  <!-- ── RiskWise CTA ───────────────────────────────────────── -->
+  {% if elevated_signals_count > 0 %}
+  <div class="mv-cta-banner mb-5">
+    <div>
+      <div class="mv-cta-eyebrow">RiskWise Planner — FinTech Suite</div>
+      <div class="mv-cta-title">
+        {{ elevated_signals_count }} ELEVATED signal{{ elevated_signals_count|pluralize }} detected — ready for deeper risk planning
+      </div>
+      <div class="mv-cta-sub">
+        Route flagged assets into RiskWise Planner to model scenarios, run Monte Carlo, and plan positions before entering.
+      </div>
+    </div>
+    <a href="#" class="mv-cta-action">Investigate in RiskWise →</a>
+  </div>
+  {% endif %}
+
+  <audio id="alertSound"  src="{% static 'sounds/sound_up.mp3' %}"   preload="auto"></audio>
+  <audio id="soundAbove"  src="{% static 'sounds/sound_up.mp3' %}"   preload="auto"></audio>
+  <audio id="soundBelow"  src="{% static 'sounds/sound_down.mp3' %}" preload="auto"></audio>
 
 </div>
 {% endblock %}
