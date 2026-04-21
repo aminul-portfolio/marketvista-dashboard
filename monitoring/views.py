@@ -13,16 +13,28 @@ from django.utils.dateparse import parse_date
 from django.utils.timezone import localtime, now
 
 from .forms import AlertForm
-from .models import Asset, MarketSignal, PriceOHLC, PriceSnapshot, WatchlistItem
+from .models import Asset, PriceOHLC, PriceSnapshot
 from .services.alerts import (
     create_user_alert_from_form,
     fetch_and_acknowledge_triggered_alerts,
+    get_alert_summary,
 )
-from .services.market import build_dashboard_context, get_freshness_signal
-from .services.signals import refresh_signals_for_assets
+from .services.market import (
+    build_dashboard_context,
+    get_asset_monitoring_context,
+    get_freshness_signal,
+    get_top_movers,
+)
+from .services.signals import (
+    get_active_signals,
+    refresh_asset_signals,
+    refresh_signals_for_assets,
+)
 from .services.watchlist import (
     add_asset_to_watchlist,
+    get_watchlist_count,
     get_watchlist_for_user,
+    is_on_watchlist,
     remove_asset_from_watchlist,
 )
 
@@ -36,14 +48,21 @@ def home(request):
 @login_required
 def dashboard(request):
     context = build_dashboard_context(request.user, refresh_signals=True)
+    context["sidebar_elevated_count"] = context.get("elevated_signals_count", 0)
+    context["watchlist_count"] = context.get(
+        "watchlist_count",
+        get_watchlist_count(request.user),
+    )
     return render(request, "monitoring/dashboard.html", context)
 
 
 @login_required
 def price_data(request):
     snapshots = (
-        PriceSnapshot.objects.select_related("asset").order_by("-timestamp")[:200]
+        PriceSnapshot.objects.select_related("asset")
+        .order_by("-timestamp")[:200]
     )
+
     data = [
         {
             "symbol": snapshot.asset.symbol,
@@ -130,10 +149,10 @@ def line_price_data(request):
     delta = delta_map.get(range_str, timedelta(minutes=30))
     cutoff = now() - delta
 
-    snapshots = PriceSnapshot.objects.filter(
-        asset__symbol=symbol,
-        timestamp__gte=cutoff,
-    ).order_by("timestamp")
+    snapshots = (
+        PriceSnapshot.objects.filter(asset__symbol=symbol, timestamp__gte=cutoff)
+        .order_by("timestamp")
+    )
 
     data = [
         {"timestamp": item.timestamp.isoformat(), "price": float(item.price)}
@@ -151,6 +170,7 @@ def register(request):
             return redirect("monitoring:dashboard")
     else:
         form = UserCreationForm()
+
     return render(request, "monitoring/register.html", {"form": form})
 
 
@@ -163,13 +183,24 @@ def create_alert(request):
             return redirect("monitoring:alert_list")
     else:
         form = AlertForm()
+
     return render(request, "monitoring/create_alert.html", {"form": form})
 
 
 @login_required
 def alert_list(request):
     alerts = request.user.alerts.select_related("asset").all()
-    return render(request, "monitoring/alert_list.html", {"alerts": alerts})
+    alert_summary = get_alert_summary(request.user)
+
+    context = {
+        "alerts": alerts,
+        "active_alerts_count": alert_summary["active_count"],
+        "triggered_alerts_count": alert_summary["triggered_count"],
+        "watchlist_count": get_watchlist_count(request.user),
+        "sidebar_elevated_count": get_active_signals(severity="ELEVATED").count(),
+        "freshness_signal": get_freshness_signal(),
+    }
+    return render(request, "monitoring/alert_list.html", context)
 
 
 @login_required
@@ -207,138 +238,129 @@ def triggered_alerts_api(request):
 
 
 def _get_asset_pct_move(asset, periods=4):
-    """Return 3-period percentage move from PriceOHLC. Returns None if insufficient data."""
-    rows = list(PriceOHLC.objects.filter(asset=asset).order_by("-timestamp")[:periods])
+    rows = list(
+        PriceOHLC.objects.filter(asset=asset)
+        .order_by("-timestamp")[:periods]
+    )
     if len(rows) < periods:
         return None
+
     latest_close = float(rows[0].close)
     base_close = float(rows[-1].close)
+
     if base_close == 0:
         return None
+
     return ((latest_close - base_close) / base_close) * 100.0
 
 
-def _get_top_severity(asset):
-    """Return the highest active signal severity for an asset, or None."""
-    if MarketSignal.objects.filter(
-        asset=asset,
-        is_active=True,
-        severity="ELEVATED",
-    ).exists():
-        return "ELEVATED"
-    if MarketSignal.objects.filter(
-        asset=asset,
-        is_active=True,
-        severity="WATCHLIST",
-    ).exists():
-        return "WATCHLIST"
-    if MarketSignal.objects.filter(
-        asset=asset,
-        is_active=True,
-        severity="INFO",
-    ).exists():
-        return "INFO"
-    return None
+def _get_asset_badge(asset):
+    active_signals = get_active_signals().filter(asset=asset)
 
+    elevated_count = active_signals.filter(severity="ELEVATED").count()
+    watchlist_count = active_signals.filter(severity="WATCHLIST").count()
+    info_count = active_signals.filter(severity="INFO").count()
 
-def _severity_badge(asset):
-    """Return badge text and color for signal severity on a watchlist row."""
-    elevated = MarketSignal.objects.filter(
-        asset=asset,
-        is_active=True,
-        severity="ELEVATED",
-    ).count()
-    watchlist = MarketSignal.objects.filter(
-        asset=asset,
-        is_active=True,
-        severity="WATCHLIST",
-    ).count()
-    info = MarketSignal.objects.filter(
-        asset=asset,
-        is_active=True,
-        severity="INFO",
-    ).count()
-
-    if elevated > 0:
+    if elevated_count > 0:
         return {
-            "badge_text": f"{elevated} elevated",
+            "badge_text": f"{elevated_count} elevated",
             "badge_color": "#f97316",
             "badge_severity": "elevated",
         }
-    if watchlist > 0:
+
+    if watchlist_count > 0:
         return {
-            "badge_text": f"{watchlist} watchlist",
+            "badge_text": f"{watchlist_count} watchlist",
             "badge_color": "#f59e0b",
             "badge_severity": "watchlist",
         }
-    if info > 0:
+
+    if info_count > 0:
         return {
-            "badge_text": f"{info} info",
-            "badge_color": "rgba(255,255,255,0.2)",
+            "badge_text": f"{info_count} info",
+            "badge_color": "rgba(255,255,255,0.28)",
             "badge_severity": "info",
         }
+
     return {
         "badge_text": "no signals",
-        "badge_color": "rgba(255,255,255,0.1)",
+        "badge_color": "rgba(255,255,255,0.12)",
         "badge_severity": "none",
     }
 
 
+def _build_asset_chart_points(ohlc_rows):
+    if not ohlc_rows:
+        return []
+
+    closes = [float(row.close) for row in ohlc_rows]
+    min_close = min(closes)
+    max_close = max(closes)
+
+    points = []
+    for index, row in enumerate(ohlc_rows):
+        close_value = float(row.close)
+
+        if max_close == min_close:
+            height_pct = 65
+        else:
+            normalized = (close_value - min_close) / (max_close - min_close)
+            height_pct = 28 + (normalized * 72)
+
+        points.append(
+            {
+                "height_pct": round(height_pct, 2),
+                "tooltip": f"{row.timestamp:%d %b %Y} · ${close_value:,.2f}",
+                "is_latest": index == len(ohlc_rows) - 1,
+            }
+        )
+
+    return points
+
+
 @login_required
 def watchlist_page(request):
-    """Full watchlist page with enriched per-asset data."""
-    watchlist_qs = (
-        WatchlistItem.objects.filter(user=request.user)
-        .select_related("asset")
-        .order_by("asset__symbol")
-    )
+    watchlist_items = list(get_watchlist_for_user(request.user))
+    alert_summary = get_alert_summary(request.user)
 
-    enriched = []
-    for item in watchlist_qs:
+    enriched_rows = []
+    for item in watchlist_items:
         latest_snapshot = (
-            PriceSnapshot.objects.filter(asset=item.asset).order_by("-timestamp").first()
+            item.asset.price_snapshots.order_by("-timestamp").first()
         )
-        badge = _severity_badge(item.asset)
-        enriched.append(
+        enriched_rows.append(
             {
                 "item": item,
                 "latest_price": latest_snapshot,
                 "pct_move": _get_asset_pct_move(item.asset),
-                **badge,
+                **_get_asset_badge(item.asset),
             }
         )
 
-    watchlisted_asset_ids = [row["item"].asset_id for row in enriched]
+    watchlisted_asset_ids = [row["item"].asset_id for row in enriched_rows]
     elevated_on_watchlist = (
-        MarketSignal.objects.filter(
-            asset_id__in=watchlisted_asset_ids,
-            is_active=True,
-            severity="ELEVATED",
-        )
+        get_active_signals(severity="ELEVATED")
+        .filter(asset_id__in=watchlisted_asset_ids)
         .values("asset_id")
         .distinct()
         .count()
     )
 
     context = {
-        "watchlist_items": enriched,
-        "total_count": len(enriched),
+        "watchlist_items": enriched_rows,
+        "total_count": len(enriched_rows),
         "elevated_on_watchlist": elevated_on_watchlist,
-        "active_alerts_count": request.user.alerts.filter(is_triggered=False).count(),
+        "active_alerts_count": alert_summary["active_count"],
         "freshness_signal": get_freshness_signal(),
-        "watchlist_count": len(enriched),
-        "sidebar_elevated_count": MarketSignal.objects.filter(
-            is_active=True,
-            severity="ELEVATED",
-        ).count(),
+        "watchlist_count": get_watchlist_count(request.user),
+        "sidebar_elevated_count": get_active_signals(severity="ELEVATED").count(),
     }
     return render(request, "monitoring/watchlist.html", context)
 
 
 @login_required
 def signals_page(request):
-    """Signals page grouped by severity with optional ?severity= filter."""
-    assets = list(Asset.objects.all())
+    assets = list(Asset.objects.order_by("symbol"))
     refresh_signals_for_assets(assets)
 
     current_severity = request.GET.get("severity", "").upper().strip()
@@ -346,161 +368,127 @@ def signals_page(request):
     if current_severity not in valid_severities:
         current_severity = ""
 
-    base_qs = MarketSignal.objects.filter(is_active=True).select_related("asset")
+    elevated_signals = list(
+        get_active_signals(severity="ELEVATED").order_by("-signal_timestamp")
+    )
+    watchlist_signals = list(
+        get_active_signals(severity="WATCHLIST").order_by("-signal_timestamp")
+    )
+    info_signals = list(
+        get_active_signals(severity="INFO").order_by("-signal_timestamp")
+    )
 
-    if current_severity:
-        elevated_signals = (
-            list(base_qs.filter(severity="ELEVATED").order_by("-signal_timestamp"))
-            if current_severity == "ELEVATED"
-            else []
-        )
-        watchlist_signals = (
-            list(base_qs.filter(severity="WATCHLIST").order_by("-signal_timestamp"))
-            if current_severity == "WATCHLIST"
-            else []
-        )
-        info_signals = (
-            list(base_qs.filter(severity="INFO").order_by("-signal_timestamp"))
-            if current_severity == "INFO"
-            else []
-        )
-    else:
-        elevated_signals = list(
-            base_qs.filter(severity="ELEVATED").order_by("-signal_timestamp")
-        )
-        watchlist_signals = list(
-            base_qs.filter(severity="WATCHLIST").order_by("-signal_timestamp")
-        )
-        info_signals = list(base_qs.filter(severity="INFO").order_by("-signal_timestamp"))
+    if current_severity == "ELEVATED":
+        watchlist_signals = []
+        info_signals = []
+    elif current_severity == "WATCHLIST":
+        elevated_signals = []
+        info_signals = []
+    elif current_severity == "INFO":
+        elevated_signals = []
+        watchlist_signals = []
 
-    elevated_count = base_qs.filter(severity="ELEVATED").count()
-    watchlist_count = base_qs.filter(severity="WATCHLIST").count()
-    info_count = base_qs.filter(severity="INFO").count()
-    total_signals_count = elevated_count + watchlist_count + info_count
+    elevated_count = get_active_signals(severity="ELEVATED").count()
+    watchlist_count_signals = get_active_signals(severity="WATCHLIST").count()
+    info_count = get_active_signals(severity="INFO").count()
+    total_signals_count = elevated_count + watchlist_count_signals + info_count
 
     context = {
         "elevated_signals": elevated_signals,
         "watchlist_signals": watchlist_signals,
         "info_signals": info_signals,
         "elevated_count": elevated_count,
-        "watchlist_count": watchlist_count,
+        "watchlist_count_signals": watchlist_count_signals,
         "info_count": info_count,
         "total_signals_count": total_signals_count,
         "current_severity": current_severity,
         "freshness_signal": get_freshness_signal(),
         "sidebar_elevated_count": elevated_count,
-        "watchlist_count_sidebar": (
-            WatchlistItem.objects.filter(user=request.user).count()
-            if request.user.is_authenticated
-            else 0
-        ),
+        "watchlist_count": get_watchlist_count(request.user),
     }
     return render(request, "monitoring/signals.html", context)
 
 
 @login_required
 def asset_list(request):
-    """Browse all tracked assets with latest prices and signal status."""
     assets = list(Asset.objects.order_by("symbol"))
+    top_movers = get_top_movers(limit=50)
 
-    watchlisted_ids = set(
-        WatchlistItem.objects.filter(user=request.user).values_list("asset_id", flat=True)
-    )
+    mover_lookup = {row["asset"].id: row for row in top_movers}
 
-    enriched = []
+    enriched_assets = []
     for asset in assets:
-        latest_snapshot = (
-            PriceSnapshot.objects.filter(asset=asset).order_by("-timestamp").first()
-        )
-        enriched.append(
+        latest_snapshot = asset.price_snapshots.order_by("-timestamp").first()
+        mover_row = mover_lookup.get(asset.id)
+
+        enriched_assets.append(
             {
                 "asset": asset,
                 "latest_price": latest_snapshot,
-                "pct_move": _get_asset_pct_move(asset),
-                "top_severity": _get_top_severity(asset),
-                "on_watchlist": asset.id in watchlisted_ids,
+                "pct_move": mover_row["pct_move"] if mover_row else _get_asset_pct_move(asset),
+                "top_severity": _get_asset_badge(asset)["badge_severity"],
+                "on_watchlist": is_on_watchlist(request.user, asset),
             }
         )
 
     context = {
-        "assets": enriched,
+        "assets": enriched_assets,
         "freshness_signal": get_freshness_signal(),
-        "sidebar_elevated_count": MarketSignal.objects.filter(
-            is_active=True,
-            severity="ELEVATED",
-        ).count(),
-        "watchlist_count": len(watchlisted_ids),
+        "sidebar_elevated_count": get_active_signals(severity="ELEVATED").count(),
+        "watchlist_count": get_watchlist_count(request.user),
     }
     return render(request, "monitoring/asset_list.html", context)
 
 
 @login_required
 def asset_detail(request, symbol):
-    """Asset detail page — signal history, alerts, price chart, RiskWise CTA."""
     asset = get_object_or_404(Asset, symbol__iexact=symbol)
-
-    from .services.signals import refresh_asset_signals
-
     refresh_asset_signals(asset)
 
     period = request.GET.get("period", "7d")
     period_days = {"7d": 7, "30d": 30, "90d": 90}.get(period, 7)
 
-    ohlc_rows = list(
-        PriceOHLC.objects.filter(asset=asset).order_by("-timestamp")[:period_days]
-    )
-    ohlc_rows.reverse()
-
-    latest_snapshot = (
-        PriceSnapshot.objects.filter(asset=asset).order_by("-timestamp").first()
-    )
-
-    pct_move = _get_asset_pct_move(asset)
-
-    signal_history = (
-        MarketSignal.objects.filter(asset=asset).order_by("-signal_timestamp")[:10]
-    )
-
-    asset_alerts = (
-        request.user.alerts.filter(asset=asset).order_by("-created_at")
-        if request.user.is_authenticated
-        else []
-    )
-
-    on_watchlist = WatchlistItem.objects.filter(
+    monitoring_context = get_asset_monitoring_context(
+        asset,
         user=request.user,
-        asset=asset,
-    ).exists()
+        chart_limit=90,
+    )
 
-    has_elevated_signal = MarketSignal.objects.filter(
-        asset=asset,
-        is_active=True,
-        severity="ELEVATED",
-    ).exists()
+    ohlc_rows = monitoring_context["ohlc_rows"][-period_days:]
+    chart_points = _build_asset_chart_points(ohlc_rows)
+
+    chart_start_label = ohlc_rows[0].timestamp.strftime("%d %b") if ohlc_rows else ""
+    chart_end_label = ohlc_rows[-1].timestamp.strftime("%d %b") if ohlc_rows else ""
+
+    active_signals = monitoring_context["active_signals"]
+    signal_history = monitoring_context["signal_history"][:10]
+    latest_snapshot = monitoring_context["latest_snapshot"]
+    on_watchlist = monitoring_context["on_watchlist"]
+
+    asset_alerts = request.user.alerts.filter(asset=asset).order_by("-created_at")
 
     context = {
         "asset": asset,
         "latest_snapshot": latest_snapshot,
-        "pct_move": pct_move,
+        "pct_move": _get_asset_pct_move(asset),
         "ohlc_rows": ohlc_rows,
+        "chart_points": chart_points,
+        "chart_start_label": chart_start_label,
+        "chart_end_label": chart_end_label,
         "signal_history": signal_history,
         "asset_alerts": asset_alerts,
         "on_watchlist": on_watchlist,
-        "has_elevated_signal": has_elevated_signal,
+        "has_elevated_signal": active_signals.filter(severity="ELEVATED").exists(),
         "period": period,
         "freshness_signal": get_freshness_signal(),
-        "sidebar_elevated_count": MarketSignal.objects.filter(
-            is_active=True,
-            severity="ELEVATED",
-        ).count(),
-        "watchlist_count": WatchlistItem.objects.filter(user=request.user).count(),
+        "sidebar_elevated_count": get_active_signals(severity="ELEVATED").count(),
+        "watchlist_count": get_watchlist_count(request.user),
     }
     return render(request, "monitoring/asset_detail.html", context)
 
 
 @login_required
 def watchlist_add(request, symbol):
-    """POST — add asset to watchlist."""
     if request.method != "POST":
         return redirect("monitoring:asset_list")
 
@@ -518,7 +506,6 @@ def watchlist_add(request, symbol):
 
 @login_required
 def watchlist_remove(request, symbol):
-    """POST — remove asset from watchlist."""
     if request.method != "POST":
         return redirect("monitoring:watchlist")
 

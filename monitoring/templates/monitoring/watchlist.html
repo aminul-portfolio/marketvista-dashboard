@@ -13,7 +13,6 @@
 
 {% block page_content %}
 
-<!-- Summary cards -->
 <div class="mv-three-col">
   <div class="mv-sum-card">
     <div class="mv-sum-eye">Assets on Watchlist</div>
@@ -32,10 +31,14 @@
   </div>
 </div>
 
-<!-- Toolbar -->
 <div class="mv-toolbar">
   <div class="mv-search-wrap">
-    <input class="mv-search-input" id="wl-search" placeholder="Search watchlist…" oninput="filterWatchlist(this.value)">
+    <input
+      class="mv-search-input"
+      id="wl-search"
+      placeholder="Search watchlist…"
+      oninput="filterWatchlist(this.value)"
+    >
   </div>
   <div class="mv-tb-right-btns">
     <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary">+ Add asset</a>
@@ -43,7 +46,6 @@
   </div>
 </div>
 
-<!-- Watchlist table -->
 {% if watchlist_items %}
 <div class="mv-wl-table" id="wl-table">
   <div class="mv-wl-thead">
@@ -54,6 +56,7 @@
     <div class="mv-th">Added</div>
     <div class="mv-th"></div>
   </div>
+
   {% for row in watchlist_items %}
   <div class="mv-wl-row" data-name="{{ row.item.asset.name|lower }} {{ row.item.asset.symbol|lower }}">
     <div class="mv-wr-asset">
@@ -68,6 +71,7 @@
         <div class="mv-wr-sym">{{ row.item.asset.symbol }}</div>
       </div>
     </div>
+
     <div class="mv-wr-price">
       {% if row.latest_price %}
         ${{ row.latest_price.price|floatformat:2 }}
@@ -75,20 +79,26 @@
         <span class="mv-muted">—</span>
       {% endif %}
     </div>
-    <div class="mv-wr-chg {% if row.pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
-      {% if row.pct_move is not None %}
+
+    {% if row.pct_move or row.pct_move == 0 %}
+      <div class="mv-wr-chg {% if row.pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
         {% if row.pct_move >= 0 %}+{% endif %}{{ row.pct_move|floatformat:2 }}%
-      {% else %}
+      </div>
+    {% else %}
+      <div class="mv-wr-chg">
         <span class="mv-muted">—</span>
-      {% endif %}
-    </div>
+      </div>
+    {% endif %}
+
     <div class="mv-sig-badge">
       <div class="mv-sb-dot" style="background:{{ row.badge_color }};"></div>
       <span class="mv-sb-n">{{ row.badge_text }}</span>
     </div>
+
     <div style="font-size:10px;color:rgba(255,255,255,0.25);">
       {{ row.item.created_at|date:"d M" }}
     </div>
+
     <div class="mv-wr-actions">
       <a href="{% url 'monitoring:asset_detail' row.item.asset.symbol %}" class="mv-view-link">View →</a>
       <form method="post" action="{% url 'monitoring:watchlist_remove' row.item.asset.symbol %}" style="display:inline;">
@@ -104,12 +114,13 @@
   <div style="font-size:24px;margin-bottom:8px;opacity:0.3;">★</div>
   <div>No assets on your watchlist yet.</div>
   <div style="margin-top:8px;">
-    <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary" style="display:inline-flex;margin-top:8px;">Browse assets →</a>
+    <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary" style="display:inline-flex;margin-top:8px;">
+      Browse assets →
+    </a>
   </div>
 </div>
 {% endif %}
 
-<!-- Export row -->
 {% if watchlist_items %}
 <div class="mv-export-row">
   <span class="mv-export-txt">Export your watchlist for analyst review or offline planning</span>

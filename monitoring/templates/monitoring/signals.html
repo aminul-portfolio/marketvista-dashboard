@@ -8,14 +8,17 @@
 {% block breadcrumb %}Command Centre › Signals{% endblock %}
 
 {% block topbar_right %}
-  <span class="mv-freshness">{{ total_signals_count }} signal{{ total_signals_count|pluralize }} today</span>
+  <span class="mv-freshness">{{ total_signals_count }} signal{{ total_signals_count|pluralize }} active</span>
 {% endblock %}
 
 {% block attr_strip %}
 <div class="mv-attr-strip">
   <div class="mv-attr-left">
     <div class="mv-attr-dot"></div>
-    <span class="mv-attr-txt">Monitoring data powered by <a class="mv-attr-link" href="#">DataBridge Market API</a></span>
+    <span class="mv-attr-txt">
+      Monitoring data powered by
+      <a class="mv-attr-link" href="#">DataBridge Market API</a>
+    </span>
   </div>
   <span class="mv-attr-right">OHLC · price snapshots · normalised</span>
 </div>
@@ -23,14 +26,13 @@
 
 {% block page_content %}
 
-<!-- Severity summary -->
 <div class="mv-stat-row">
   <div class="mv-stat-card">
     <div class="mv-stat-val elevated">{{ elevated_count }}</div>
     <div class="mv-stat-lbl">Elevated</div>
   </div>
   <div class="mv-stat-card">
-    <div class="mv-stat-val watchlist">{{ watchlist_count }}</div>
+    <div class="mv-stat-val watchlist">{{ watchlist_count_signals }}</div>
     <div class="mv-stat-lbl">Watchlist</div>
   </div>
   <div class="mv-stat-card">
@@ -39,15 +41,13 @@
   </div>
 </div>
 
-<!-- Filters -->
 <div class="mv-filter-row">
   <a href="?severity=" class="mv-fil {% if not current_severity %}active{% endif %}">All signals</a>
-  <a href="?severity=ELEVATED"  class="mv-fil {% if current_severity == 'ELEVATED' %}active{% endif %}">ELEVATED</a>
+  <a href="?severity=ELEVATED" class="mv-fil {% if current_severity == 'ELEVATED' %}active{% endif %}">ELEVATED</a>
   <a href="?severity=WATCHLIST" class="mv-fil {% if current_severity == 'WATCHLIST' %}active{% endif %}">WATCHLIST</a>
-  <a href="?severity=INFO"      class="mv-fil {% if current_severity == 'INFO' %}active{% endif %}">INFO</a>
+  <a href="?severity=INFO" class="mv-fil {% if current_severity == 'INFO' %}active{% endif %}">INFO</a>
 </div>
 
-<!-- Elevated banner -->
 {% if elevated_count > 0 %}
 <div class="mv-elevated-banner">
   <div class="mv-eb-left">
@@ -61,8 +61,6 @@
 </div>
 {% endif %}
 
-<!-- ELEVATED signals -->
-{% if elevated_signals or not current_severity or current_severity == 'ELEVATED' %}
 {% if elevated_signals %}
 <div>
   <div class="mv-section-hd">
@@ -72,9 +70,9 @@
   <div class="mv-sig-card elevated">
     <span class="mv-chip elevated">ELEVATED</span>
     <span class="mv-sc-sym">{{ signal.asset.symbol }}</span>
-    <span class="mv-sc-type">{{ signal.get_signal_type_display|upper|truncatechars:14 }}</span>
+    <span class="mv-sc-type">{{ signal.title|truncatechars:24 }}</span>
     <span class="mv-sc-msg">{{ signal.details|default:signal.title }}</span>
-    {% if signal.metric_value is not None %}
+    {% if signal.metric_value or signal.metric_value == 0 %}
       <span class="mv-sc-val">{{ signal.metric_value|floatformat:2 }}</span>
     {% endif %}
     <span class="mv-sc-time">{{ signal.signal_timestamp|timesince }} ago</span>
@@ -83,10 +81,7 @@
   {% endfor %}
 </div>
 {% endif %}
-{% endif %}
 
-<!-- WATCHLIST signals -->
-{% if watchlist_signals or not current_severity or current_severity == 'WATCHLIST' %}
 {% if watchlist_signals %}
 <div>
   <div class="mv-section-hd">
@@ -96,9 +91,9 @@
   <div class="mv-sig-card watchlist">
     <span class="mv-chip watchlist">WATCHLIST</span>
     <span class="mv-sc-sym">{{ signal.asset.symbol }}</span>
-    <span class="mv-sc-type">{{ signal.get_signal_type_display|upper|truncatechars:14 }}</span>
+    <span class="mv-sc-type">{{ signal.title|truncatechars:24 }}</span>
     <span class="mv-sc-msg">{{ signal.details|default:signal.title }}</span>
-    {% if signal.metric_value is not None %}
+    {% if signal.metric_value or signal.metric_value == 0 %}
       <span class="mv-sc-val">{{ signal.metric_value|floatformat:2 }}</span>
     {% endif %}
     <span class="mv-sc-time">{{ signal.signal_timestamp|timesince }} ago</span>
@@ -107,10 +102,7 @@
   {% endfor %}
 </div>
 {% endif %}
-{% endif %}
 
-<!-- INFO signals -->
-{% if info_signals or not current_severity or current_severity == 'INFO' %}
 {% if info_signals %}
 <div>
   <div class="mv-section-hd">
@@ -120,9 +112,9 @@
   <div class="mv-sig-card info">
     <span class="mv-chip info">INFO</span>
     <span class="mv-sc-sym">{{ signal.asset.symbol }}</span>
-    <span class="mv-sc-type">{{ signal.get_signal_type_display|upper|truncatechars:14 }}</span>
+    <span class="mv-sc-type">{{ signal.title|truncatechars:24 }}</span>
     <span class="mv-sc-msg">{{ signal.details|default:signal.title }}</span>
-    {% if signal.metric_value is not None %}
+    {% if signal.metric_value or signal.metric_value == 0 %}
       <span class="mv-sc-val">{{ signal.metric_value|floatformat:2 }}</span>
     {% endif %}
     <span class="mv-sc-time">{{ signal.signal_timestamp|timesince }} ago</span>
@@ -131,15 +123,13 @@
   {% endfor %}
 </div>
 {% endif %}
-{% endif %}
 
-<!-- Empty state -->
 {% if not elevated_signals and not watchlist_signals and not info_signals %}
 <div class="mv-empty">
   <div style="font-size:24px;margin-bottom:8px;opacity:0.3;">▲</div>
   <div>No active signals found.</div>
-  <div style="margin-top:4px;font-size:11px;">
-    Run <code style="color:#0d9488;">python manage.py seed_demo_data</code> to generate monitoring data.
+  <div style="margin-top:6px;font-size:11px;">
+    Load demo data or refresh monitoring inputs to generate signal context.
   </div>
 </div>
 {% endif %}

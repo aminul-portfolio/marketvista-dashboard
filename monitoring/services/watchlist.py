@@ -1,23 +1,45 @@
 from ..models import WatchlistItem
 
 
-def get_watchlist_for_user(user, limit=8):
+def get_watchlist_for_user(user, limit=None):
     if not getattr(user, "is_authenticated", False):
         return WatchlistItem.objects.none()
 
-    return (
+    queryset = (
         WatchlistItem.objects.filter(user=user)
         .select_related("asset")
-        .order_by("asset__symbol")[:limit]
+        .order_by("asset__symbol")
     )
+
+    if limit:
+        return queryset[:limit]
+    return queryset
+
+
+def get_watchlist_count(user):
+    if not getattr(user, "is_authenticated", False):
+        return 0
+    return WatchlistItem.objects.filter(user=user).count()
+
+
+def is_on_watchlist(user, asset):
+    if not getattr(user, "is_authenticated", False):
+        return False
+
+    return WatchlistItem.objects.filter(user=user, asset=asset).exists()
 
 
 def add_asset_to_watchlist(user, asset, note=""):
-    watchlist_item, _ = WatchlistItem.objects.get_or_create(
+    watchlist_item, created = WatchlistItem.objects.get_or_create(
         user=user,
         asset=asset,
         defaults={"note": note},
     )
+
+    if not created and note and watchlist_item.note != note:
+        watchlist_item.note = note
+        watchlist_item.save(update_fields=["note"])
+
     return watchlist_item
 
 
