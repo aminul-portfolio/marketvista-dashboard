@@ -1,0 +1,276 @@
+/* 🌐 Base */
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9fbfd;
+  color: #212529;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+body.dark-mode {
+  background-color: #1e1e2f;
+  color: #e0e0e0;
+}
+
+/* 🔠 Dashboard Heading */
+.dashboard-heading-emoji {
+  font-size: 2rem;
+}
+.dashboard-heading-text {
+  font-size: clamp(1.5rem, 2vw, 2.25rem);
+  font-weight: 600;
+  color: #007bff;
+}
+
+/* 🌈 Stat Cards */
+.stat-card {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+}
+.stat-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+.stat-card .icon {
+  font-size: 2rem;
+}
+.stat-card .label {
+  font-weight: 600;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+.stat-card .value {
+  font-size: 2.25rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+/* 🎨 Gradient Headers */
+.bg-themed {
+  background: linear-gradient(90deg, #1e3c72, #2a5298);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+}
+body.dark-mode .bg-themed {
+  background: linear-gradient(90deg, #121a2c, #2a2a3f);
+}
+
+/* 📊 Chart Containers */
+.chart-card {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.chart-container canvas {
+  background: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+body.dark-mode .chart-container canvas {
+  background: #1e1e2f;
+}
+
+/* ✅ Candlestick Chart Enhancements */
+#priceHistoryChart,
+#ohlcCloseChart,
+#candlestickChart {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 0.75rem;
+}
+body.dark-mode #priceHistoryChart,
+body.dark-mode #ohlcCloseChart,
+body.dark-mode #candlestickChart {
+  background-color: #1e1e2f;
+  border: 1px solid #444;
+}
+
+/* 📉 Candlestick Chart Container */
+.candlestick-wrapper {
+  background-color: #f1f3f9;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  width: 100%;
+  overflow-x: auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+body.dark-mode .candlestick-wrapper {
+  background-color: #151926;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+.candlestick-container {
+  padding: 1rem;
+  background-color: transparent;
+  border-radius: 0.5rem;
+}
+
+/* 📋 Tables */
+.table-card {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.table-card .card-header {
+  background: linear-gradient(90deg, #007bff, #00c6ff);
+  color: #fff;
+  font-weight: 600;
+}
+.table-card .card-body {
+  padding: 0.75rem 1rem;
+}
+.table thead th {
+  background-color: #f1f3f5;
+  color: #333;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.table tbody td {
+  font-size: 0.95rem;
+  padding: 0.75rem;
+}
+.table-hover tbody tr:hover {
+  background-color: #f0f8ff;
+}
+body.dark-mode .table-hover tbody tr:hover {
+  background-color: #2e3b55;
+}
+
+/* 🧾 Dark Mode - Cards */
+body.dark-mode .card,
+body.dark-mode .card-body,
+body.dark-mode .card-header {
+  background-color: #2a2a3f;
+  color: #e0e0e0;
+}
+
+/* 🧾 Dark Mode - Forms */
+body.dark-mode .form-control,
+body.dark-mode .form-select,
+body.dark-mode input[type="date"],
+body.dark-mode .dataTables_filter input,
+body.dark-mode .dataTables_length select {
+  background-color: #2e2e3e;
+  color: #e0e0e0;
+  border: 1px solid #555;
+}
+body.dark-mode select option {
+  background-color: #2a2a3f;
+  color: #f0f0f0;
+}
+body.dark-mode .form-label,
+body.dark-mode label {
+  color: #ccc;
+}
+body.dark-mode .btn-outline-success {
+  color: #00e676;
+  border-color: #00e676;
+}
+body.dark-mode .btn-outline-success:hover {
+  background-color: #00e676;
+  color: #1e1e2f;
+}
+
+/* 📋 DataTables Pagination */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  padding: 0.25rem 0.75rem;
+  margin: 0 0.15rem;
+  border-radius: 0.4rem;
+  background-color: #f0f0f0;
+  border: none;
+  font-weight: 500;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background-color: #007bff;
+  color: #fff !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background-color: #007bff;
+  color: #fff !important;
+  font-weight: 600;
+}
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button {
+  background-color: #2a2a3f;
+  color: #e0e0e0 !important;
+}
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background-color: #6366f1;
+}
+
+/* 🎯 Symbol Filters */
+.bg-gradient-info {
+  background: linear-gradient(90deg, #00c9ff, #92fe9d);
+  color: #0c0c0c;
+  font-weight: 600;
+  border-radius: 0.5rem;
+}
+#ohlcSymbolFilter {
+  min-width: 150px;
+}
+@media (max-width: 576px) {
+  #ohlcSymbolFilter {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+/* 🧠 Button UX */
+.btn {
+  font-weight: 500;
+  border-radius: 0.4rem;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 🌘 Navbar */
+.navbar.bg-dark .nav-link {
+  color: #fff !important;
+}
+.navbar.bg-dark .nav-link:hover,
+.navbar.bg-dark .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+}
+
+/* ⏳ Spinner */
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* 💨 Fade-out */
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.logo-container {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background-color: transparent; /* Optional: use #f8f9fa or #222 if needed */
+}
+
+.logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333; /* or #fff in dark mode */
+}
+
+body.dark-mode .icon-container {
+  background-color: #2c2c2c;
+  border-color: #444;
+}

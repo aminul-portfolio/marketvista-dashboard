@@ -1,0 +1,108 @@
+{% extends "monitoring/base.html" %}
+
+{% block title %}Home - Trading Journal{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+  <h1 class="display-4 fw-bold">Welcome to Your Trading Journal</h1>
+  <p class="lead text-muted">
+    Upload your trading data, monitor live markets, and generate professional reports.
+  </p>
+</div>
+
+<div class="row g-4">
+  <!-- View Dashboard -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 text-center shadow-sm">
+      <div class="card-body">
+        <i class="bi bi-speedometer2 display-4 text-success"></i>
+        <h5 class="card-title mt-3">View Dashboard</h5>
+        <p class="text-muted">Explore KPIs, live prices, and performance charts.</p>
+        <a href="{% url 'monitoring:dashboard' %}" class="btn btn-success w-100">
+          <i class="bi bi-speedometer2"></i> Go to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Trades -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 text-center shadow-sm">
+      <div class="card-body">
+        <i class="bi bi-clipboard-data display-4 text-info"></i>
+        <h5 class="card-title mt-3">My Trades</h5>
+        <p class="text-muted">Review, edit, or export your trade history.</p>
+        <a href="{% url 'monitoring:trade_list' %}" class="btn btn-info w-100">
+          <i class="bi bi-clipboard-data"></i> View Trades
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download Reports -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 text-center shadow-sm">
+      <div class="card-body">
+        <i class="bi bi-file-earmark-arrow-down display-4 text-warning"></i>
+        <h5 class="card-title mt-3">Download Reports</h5>
+        <p class="text-muted">Generate PDF, Excel, or CSV reports.</p>
+        <a href="{% url 'monitoring:dashboard' %}" class="btn btn-warning w-100">
+          <i class="bi bi-download"></i> View Reports
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Calculator -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 text-center shadow-sm">
+      <div class="card-body">
+        <i class="bi bi-calculator display-4 text-danger"></i>
+        <h5 class="card-title mt-3">Risk Calculator</h5>
+        <p class="text-muted">Plan position sizing and manage risk.</p>
+        <a href="{% url 'monitoring:unified_risk_calculator' %}" class="btn btn-danger w-100">
+          <i class="bi bi-calculator"></i> Calculate Risk
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 text-center shadow-sm">
+      <div class="card-body">
+        <i class="bi bi-bell display-4 text-secondary"></i>
+        <h5 class="card-title mt-3">Price Alerts</h5>
+        <p class="text-muted">Manage and create price alerts for your assets.</p>
+        <a href="{% url 'monitoring:alert_list' %}" class="btn btn-secondary w-100">
+          <i class="bi bi-bell"></i> View Alerts
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Overview -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 text-center shadow-sm">
+      <div class="card-body">
+        <i class="bi bi-info-circle display-4 text-dark"></i>
+        <h5 class="card-title mt-3">Project Overview</h5>
+        <p class="text-muted">See what this trading journal can do for you.</p>
+        <a href="{% url 'monitoring:overview' %}" class="btn btn-dark w-100">
+          <i class="bi bi-info-circle"></i> Learn More
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if user.is_staff %}
+<div class="mt-5">
+  <h3>⚙️ Admin Tools</h3>
+  <p class="text-muted">Manage all user data and settings.</p>
+  <a href="/admin/" class="btn btn-warning">
+    <i class="bi bi-gear"></i> Open Admin Panel
+  </a>
+</div>
+{% endif %}
+{% endblock %}

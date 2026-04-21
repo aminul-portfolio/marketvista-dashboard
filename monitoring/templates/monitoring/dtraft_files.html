@@ -1,0 +1,1597 @@
+import logging
+logger = logging.getLogger(__name__)
+
+from decimal import Decimal, InvalidOperation
+from urllib.parse import unquote
+
+from django.contrib import messages
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+from django.utils.timezone import localtime
+from django.views.decorators.http import require_GET
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+
+from .forms import TradeForm, AlertForm, UnifiedRiskForm
+from .models import Asset, Trade, PriceSnapshot, PriceOHLC
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.db import transaction
+
+import traceback
+
+
+from django.utils.timezone import now, timedelta
+
+from django.http import JsonResponse
+from django.utils.timezone import now
+from datetime import timedelta
+from .models import PriceSnapshot
+from django.utils.timezone import now
+
+import pandas as pd
+import csv
+import io
+
+
+# Home page
+def home(request):
+    return render(request, "trading/home.html")
+
+
+@login_required
+def dashboard(request):
+    symbols = Asset.objects.values_list("symbol", flat=True).distinct()
+    snapshots = PriceSnapshot.objects.order_by("-timestamp")[:200]
+
+    # All OHLC objects ordered by timestamp
+    ohlc_qs = PriceOHLC.objects.order_by("-timestamp")
+
+    # Paginate OHLC (10 per page)
+    # ✅ Return all OHLC entries directly
+    ohlc_page = PriceOHLC.objects.select_related("asset").order_by("-timestamp")[:500]  # or any reasonable limit
+
+    open_trades_count = request.user.trades.filter(closed_at__isnull=True).count()
+    total_alerts = request.user.alerts.count()
+
+    return render(
+        request,
+        "trading/dashboard.html",
+        {
+            "symbols": symbols,
+            "snapshots": snapshots,
+            "ohlc": ohlc_page,  # now this is a Page object
+            "open_trades_count": open_trades_count,
+            "total_alerts": total_alerts,
+        },
+    )
+
+
+@login_required
+def price_data(request):
+    """
+    API endpoint returning the latest 200 price snapshots,
+    used for live price tables or charts.
+    """
+    snapshots = (
+        PriceSnapshot.objects
+        .select_related("asset")
+        .order_by("-timestamp")[:200]
+    )
+
+    data = [
+        {
+            "symbol": snapshot.asset.symbol,
+            "price": round(float(snapshot.price), 2),  # 👌 Clean float
+            "timestamp": localtime(snapshot.timestamp).strftime("%Y-%m-%d %H:%M:%S")  # 🕒 Readable format
+        }
+        for snapshot in snapshots
+    ]
+
+    return JsonResponse({"snapshots": data}, safe=False)
+
+YF_MAP = {
+    "BTC/USD": "BTC-USD",
+    "ETH/USD": "ETH-USD",
+    "XAU/USD": "GC=F",
+    "US100": "^NDX",
+    "US30": "^DJI",
+    "GER40": "^GDAXI",
+    "UK100": "^FTSE"
+}
+
+
+
+
+@login_required
+def ohlc_data(request):
+    symbol = unquote(request.GET.get("symbol", "").strip())
+    if not symbol:
+        return JsonResponse({"error": "Missing symbol"}, status=400)
+
+    snapshots = (
+        PriceOHLC.objects
+        .filter(asset__symbol__iexact=symbol)
+        .order_by("-timestamp")[:100]
+    )
+
+    if not snapshots.exists():
+        logger.warning(f"📉 No OHLC data found for symbol: {symbol}")
+        return JsonResponse({
+            "ohlc": [],
+            "last_updated": None,
+            "server_time": now().isoformat(),
+            "delay_minutes": None,
+        })
+
+    latest_ts = snapshots.first().timestamp
+    delay_minutes = int((now() - latest_ts).total_seconds() // 60)
+
+    data = [
+        {
+            "timestamp": s.timestamp.isoformat(),
+            "open": float(s.open),
+            "high": float(s.high),
+            "low": float(s.low),
+            "close": float(s.close),
+            "volume": float(s.volume or 0),
+        }
+        for s in reversed(snapshots)
+    ]
+
+    return JsonResponse({
+        "ohlc": data,
+        "last_updated": latest_ts.isoformat(),
+        "server_time": now().isoformat(),
+        "delay_minutes": delay_minutes
+    })
+
+
+
+
+
+def line_price_data(request):
+    symbol = request.GET.get("symbol")
+    range_str = request.GET.get("range", "30m")
+
+    if not symbol:
+        return JsonResponse({"data": []})
+
+    delta_map = {
+        "30m": timedelta(minutes=30),
+        "1h": timedelta(hours=1),
+        "24h": timedelta(hours=24),
+    }
+    delta = delta_map.get(range_str, timedelta(minutes=30))
+    cutoff = now() - delta
+
+    snapshots = PriceSnapshot.objects.filter(
+        asset__symbol=symbol,
+        timestamp__gte=cutoff
+    ).order_by("timestamp")
+
+    data = [{"timestamp": s.timestamp.isoformat(), "price": s.price} for s in snapshots]
+    return JsonResponse({"data": data})
+
+
+
+
+
+# Registration view
+def register(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("trading:dashboard")
+    else:
+        form = UserCreationForm()
+    return render(request, "trading/register.html", {"form": form})
+
+
+class TradeListView(LoginRequiredMixin, ListView):
+    model = Trade
+    template_name = "trading/trade_list.html"
+    context_object_name = "trades"
+
+    def get_queryset(self):
+        return Trade.objects.filter(user=self.request.user).order_by("-opened_at")
+
+
+class TradeCreateView(LoginRequiredMixin, CreateView):
+    model = Trade
+    form_class = TradeForm
+    template_name = "trading/trade_form.html"
+    success_url = reverse_lazy("trading:trade_list")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+
+class TradeUpdateView(LoginRequiredMixin, UpdateView):
+    model = Trade
+    form_class = TradeForm
+    template_name = "trading/trade_form.html"
+    success_url = reverse_lazy("trading:trade_list")
+
+    def get_queryset(self):
+        return Trade.objects.filter(user=self.request.user)
+
+
+class TradeDeleteView(LoginRequiredMixin, DeleteView):
+    model = Trade
+    template_name = "trading/trade_confirm_delete.html"
+    success_url = reverse_lazy("trading:trade_list")
+
+    def get_queryset(self):
+        return Trade.objects.filter(user=self.request.user)
+
+
+class TradeDetailView(LoginRequiredMixin, DetailView):
+    model = Trade
+    template_name = "trading/trade_detail.html"
+    context_object_name = "trade"
+
+
+def add_common_metrics(result_dict, entry, stop, target, volume):
+    """Append consistent metrics to result dict."""
+    if stop is not None:
+        result_dict["Distance to Stop Loss"] = abs(entry - stop)
+    if target is not None:
+        result_dict["Distance to Target"] = abs(target - entry)
+    if stop is not None and volume is not None:
+        risk_per_trade = abs(entry - stop) * volume
+        result_dict["Risk Per Trade (£)"] = risk_per_trade
+
+
+def unified_risk_calculator(request):
+    result = None
+
+    if request.method == "POST":
+        form = UnifiedRiskForm(request.POST)
+        if form.is_valid():
+            mode = form.cleaned_data["mode"]
+            entry = form.cleaned_data["entry_price"]
+
+            # Initialize these as None so we can pass to add_common_metrics safely
+            stop = None
+            target = None
+            volume = None
+
+            try:
+                if mode == "volume":
+                    risk_amount = form.cleaned_data["risk_amount"]
+                    stop = form.cleaned_data["stop_loss_price"]
+                    if None in (risk_amount, stop):
+                        raise ValueError("Please fill Risk Amount and Stop Loss.")
+                    risk_per_unit = abs(entry - stop)
+                    volume = Decimal(risk_amount) / risk_per_unit if risk_per_unit != 0 else Decimal("0")
+                    result = {
+                        "Volume Needed": volume,
+                        "Risk Per Unit": risk_per_unit,
+                    }
+                    add_common_metrics(result, entry, stop, None, volume)
+
+                elif mode == "stoploss":
+                    risk_amount = form.cleaned_data["risk_amount"]
+                    volume = form.cleaned_data["volume"]
+                    if None in (risk_amount, volume):
+                        raise ValueError("Please fill Risk Amount and Volume.")
+                    risk_per_unit = Decimal(risk_amount) / Decimal(volume)
+                    stop = entry - risk_per_unit
+                    result = {
+                        "Stop Loss Price": stop,
+                        "Risk Per Unit": risk_per_unit,
+                    }
+                    add_common_metrics(result, entry, stop, None, volume)
+
+                elif mode == "target":
+                    desired_profit = form.cleaned_data["desired_profit"]
+                    volume = form.cleaned_data["volume"]
+                    if None in (desired_profit, volume):
+                        raise ValueError("Please fill Desired Profit and Volume.")
+                    price_diff = Decimal(desired_profit) / Decimal(volume)
+                    target = entry + price_diff
+                    result = {
+                        "Target Price": target,
+                        "Price Difference": price_diff,
+                    }
+                    add_common_metrics(result, entry, None, target, volume)
+
+                elif mode == "riskreward":
+                    stop = form.cleaned_data["stop_loss_price"]
+                    target = form.cleaned_data["target_price"]
+                    if None in (stop, target):
+                        raise ValueError("Please fill Stop Loss and Target Price.")
+                    risk_per_unit = abs(entry - stop)
+                    reward_per_unit = abs(target - entry)
+                    ratio = reward_per_unit / risk_per_unit if risk_per_unit != 0 else None
+                    result = {
+                        "Risk Per Unit": risk_per_unit,
+                        "Reward Per Unit": reward_per_unit,
+                        "Risk-Reward Ratio": ratio,
+                    }
+                    add_common_metrics(result, entry, stop, target, None)
+
+                elif mode == "riskpercent":
+                    account_size = form.cleaned_data["account_size"]
+                    risk_percent = form.cleaned_data["risk_percent"]
+                    stop = form.cleaned_data["stop_loss_price"]
+                    if None in (account_size, risk_percent, stop):
+                        raise ValueError("Please fill Account Size, Risk %, and Stop Loss.")
+                    risk_amount = Decimal(account_size) * (Decimal(risk_percent) / Decimal(100))
+                    risk_per_unit = abs(entry - stop)
+                    volume = risk_amount / risk_per_unit if risk_per_unit != 0 else Decimal("0")
+                    result = {
+                        "Risk Amount": risk_amount,
+                        "Volume Allowed": volume,
+                        "Risk Per Unit": risk_per_unit,
+                    }
+                    add_common_metrics(result, entry, stop, None, volume)
+
+                elif mode == "targetprofitvolume":
+                    desired_profit = form.cleaned_data["desired_profit"]
+                    target = form.cleaned_data["target_price"]
+                    if None in (desired_profit, target):
+                        raise ValueError("Please fill Desired Profit and Target Price.")
+                    distance_to_tp = abs(target - entry)
+                    volume = Decimal(desired_profit) / distance_to_tp if distance_to_tp != 0 else Decimal("0")
+                    result = {
+                        "Volume Needed": volume,
+                        "Distance to Target": distance_to_tp,
+                    }
+                    add_common_metrics(result, entry, None, target, volume)
+
+            except (InvalidOperation, ValueError) as e:
+                form.add_error(None, str(e))
+
+    else:
+        form = UnifiedRiskForm()
+
+    return render(request, "trading/risk_calculator.html", {
+        "form": form,
+        "result": result
+    })
+
+
+@login_required
+def alert_create(request):
+    if request.method == "POST":
+        form = AlertForm(request.POST)
+        if form.is_valid():
+            alert = form.save(commit=False)
+            alert.user = request.user
+            alert.save()
+            return redirect("trading:alert_list")
+    else:
+        form = AlertForm()
+    return render(request, "trading/alert_form.html", {"form": form})
+
+
+@login_required
+def alert_list(request):
+    alerts = request.user.alerts.all()
+    return render(request, "trading/alert_list.html", {"alerts": alerts})
+
+
+def some_context_processor(request):
+    from trading.models import Alert
+    if request.user.is_authenticated:
+        alert_count = Alert.objects.filter(user=request.user, is_triggered=False).count()
+    else:
+        alert_count = 0
+    return {"alert_count": alert_count}
+
+
+@login_required
+def create_alert(request):
+    if request.method == "POST":
+        form = AlertForm(request.POST)
+        if form.is_valid():
+            alert = form.save(commit=False)
+            alert.user = request.user
+            alert.save()
+            return redirect("trading:dashboard")  # redirect where you prefer
+    else:
+        form = AlertForm()
+    return render(request, "trading/create_alert.html", {"form": form})
+
+
+
+
+@login_required
+def close_trade(request, pk):
+    trade = get_object_or_404(Trade, pk=pk, user=request.user)
+
+    if trade.is_closed:
+        messages.warning(request, "This trade is already closed.")
+        return redirect("trade_detail", pk=trade.pk)
+
+    # Fetch latest price snapshot
+    latest_snapshot = (
+        PriceSnapshot.objects
+        .filter(asset=trade.asset)
+        .order_by("-timestamp")
+        .first()
+    )
+
+    if not latest_snapshot:
+        messages.error(request, "No price data available to close the trade.")
+        return redirect("trading:trade_detail", pk=trade.pk)
+
+    trade.exit_price = latest_snapshot.price
+    trade.closed_at = timezone.now()
+    trade.save()
+
+    messages.success(request, f"Trade closed at {latest_snapshot.price}.")
+    return redirect("trading:trade_detail", pk=trade.pk)
+
+
+
+@login_required
+def export_trades_csv(request):
+    trades = Trade.objects.filter(user=request.user).order_by('-opened_at')
+
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="trades.csv"'},
+    )
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "Asset",
+        "Type",
+        "Quantity",
+        "Entry Price",
+        "Exit Price",
+        "P&L (£)",
+        "P&L %",
+        "Opened At",
+        "Closed At",
+        "Notes",
+    ])
+
+    for t in trades:
+        writer.writerow([
+            t.asset.symbol,
+            t.trade_type,
+            t.quantity,
+            t.entry_price,
+            t.exit_price or "",
+            f"{t.pnl:.2f}" if t.pnl is not None else "",
+            f"{t.pnl_percentage:.2f}%" if t.pnl_percentage is not None else "",
+            t.opened_at.strftime("%Y-%m-%d %H:%M"),
+            t.closed_at.strftime("%Y-%m-%d %H:%M") if t.closed_at else "",
+            t.notes,
+        ])
+
+    return response
+
+
+@login_required
+def export_trades_excel(request):
+    trades = Trade.objects.filter(user=request.user).order_by('-opened_at')
+
+    data = []
+    for t in trades:
+        # Convert datetimes to naive
+        opened_at_naive = t.opened_at.replace(tzinfo=None) if t.opened_at else None
+        closed_at_naive = t.closed_at.replace(tzinfo=None) if t.closed_at else None
+
+        data.append({
+            "Asset": t.asset.symbol,
+            "Type": t.trade_type,
+            "Quantity": t.quantity,
+            "Entry Price": t.entry_price,
+            "Exit Price": t.exit_price,
+            "P&L (£)": f"{t.pnl:.2f}" if t.pnl is not None else "",
+            "P&L %": f"{t.pnl_percentage:.2f}%" if t.pnl_percentage is not None else "",
+            "Opened At": opened_at_naive,
+            "Closed At": closed_at_naive,
+            "Notes": t.notes,
+        })
+
+    df = pd.DataFrame(data)
+
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+        df.to_excel(writer, index=False, sheet_name="Trades")
+
+    buffer.seek(0)
+    response = HttpResponse(
+        buffer,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = 'attachment; filename="trades.xlsx"'
+    return response
+
+
+@login_required
+def export_prices_csv(request):
+    snapshots = (
+        PriceSnapshot.objects
+        .select_related("asset")
+        .order_by("-timestamp")
+    )
+
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="price_snapshots.csv"'},
+    )
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "Symbol",
+        "Price",
+        "Timestamp",
+    ])
+
+    for s in snapshots:
+        writer.writerow([
+            s.asset.symbol,
+            s.price,
+            s.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        ])
+
+    return response
+
+
+
+@login_required
+def triggered_alerts_api(request):
+    try:
+        alerts = (
+            request.user.alerts
+            .filter(is_triggered=True, is_notified=False)
+            .select_related("asset")
+        )
+
+        triggered = []
+
+        for alert in alerts:
+            latest = alert.asset.price_snapshots.order_by("-timestamp").first()
+            if not latest:
+                print(f"⚠️ No snapshot for {alert.asset.symbol}")
+                continue
+
+            price = latest.price
+
+            triggered.append({
+                "symbol": alert.asset.symbol,
+                "price": str(price),
+                "direction": alert.direction,
+                "target": str(alert.target_price),
+            })
+
+            with transaction.atomic():
+                alert.is_notified = True
+                alert.save()
+
+        return JsonResponse({"alerts": triggered})
+
+    except Exception as e:
+        print("🔥 Error in triggered_alerts_api:", str(e))
+        traceback.print_exc()
+        return JsonResponse({"error": str(e)}, status=500)
+
+from celery import shared_task
+from .models import Asset, PriceOHLC, PriceSnapshot
+from django.conf import settings
+from decimal import Decimal
+from datetime import datetime, timedelta
+from django.utils import timezone
+from dateutil.parser import parse
+import pandas as pd
+import yfinance as yf
+from .utils import check_alerts_for_asset
+import requests
+import logging
+
+logger = logging.getLogger(__name__)
+
+# 🔁 Separate mapping for each data provider
+twelve_map = {
+    "BTC/USD": "BTC/USD",
+    "ETH/USD": "ETH/USD",
+    "XAU/USD": "XAU/USD",  # May fail, depending on TwelveData support
+}
+
+yahoo_map = {
+    "BTC/USD": "BTC-USD",
+    "ETH/USD": "ETH-USD",
+    "XAU/USD": "GC=F",
+    "US100": "^NDX",
+    "US30": "^DJI",
+    "GER40": "^GDAXI",
+    "UK100": "^FTSE",
+}
+
+@shared_task
+def fetch_and_store_ohlc():
+    logger.info("📊 Starting OHLC fetch task...")
+
+    twelve_url = "https://api.twelvedata.com/time_series"
+    api_key = settings.TWELVE_DATA_API_KEY
+    interval = "1min"
+
+    for symbol, yahoo_symbol in yahoo_map.items():
+        asset = Asset.objects.filter(symbol=symbol).first()
+        if not asset:
+            logger.warning(f"⚠️ No asset found for {symbol}")
+            continue
+
+        success = False
+
+        # 🟢 Try Twelve Data only if supported
+        if symbol in twelve_map:
+            try:
+                response = requests.get(twelve_url, params={
+                    "symbol": twelve_map[symbol],
+                    "interval": interval,
+                    "outputsize": 10,
+                    "apikey": api_key
+                }, timeout=10)
+
+                data = response.json()
+
+                if data.get("status") == "error" or data.get("code") == 429:
+                    logger.warning(f"❌ API error for {symbol}: {data}")
+                    raise Exception("Twelve Data limit reached or failed")
+
+                if "values" in data:
+                    for entry in data["values"]:
+                        ts = parse(entry["datetime"])
+                        if timezone.is_naive(ts):
+                            ts = timezone.make_aware(ts, timezone.get_current_timezone())
+
+                        if PriceOHLC.objects.filter(asset=asset, timestamp=ts).exists():
+                            continue
+
+                        PriceOHLC.objects.create(
+                            asset=asset,
+                            timestamp=ts,
+                            open=Decimal(entry["open"]),
+                            high=Decimal(entry["high"]),
+                            low=Decimal(entry["low"]),
+                            close=Decimal(entry["close"]),
+                            volume=Decimal(entry.get("volume", 0)),
+                            source='twelve'
+                        )
+                    logger.info(f"🟢 OHLC saved from Twelve Data for {symbol}")
+                    success = True
+
+            except Exception as e:
+                logger.error(f"❌ Twelve Data failed for {symbol}: {e}")
+
+        # 🔁 Yahoo fallback
+        if not success:
+            try:
+                end = datetime.utcnow()
+                start = end - timedelta(minutes=10)
+
+                df = yf.download(
+                    yahoo_symbol,
+                    interval="1m",
+                    start=start.strftime('%Y-%m-%d %H:%M:%S'),
+                    end=end.strftime('%Y-%m-%d %H:%M:%S'),
+                    auto_adjust=False,
+                    progress=False
+                )
+
+                for timestamp, row in df.iterrows():
+                    ts = pd.to_datetime(timestamp, utc=True).tz_convert(timezone.get_current_timezone()).to_pydatetime()
+
+                    if PriceOHLC.objects.filter(asset=asset, timestamp=ts).exists():
+                        continue
+
+                    PriceOHLC.objects.create(
+                        asset=asset,
+                        timestamp=ts,
+                        open=Decimal(row["Open"]),
+                        high=Decimal(row["High"]),
+                        low=Decimal(row["Low"]),
+                        close=Decimal(row["Close"]),
+                        volume=Decimal(row.get("Volume", 0)),
+                        source='yahoo'
+                    )
+
+                logger.info(f"🔵 OHLC saved from Yahoo Finance for {symbol}")
+
+            except Exception as e:
+                logger.error(f"❌ Yahoo fallback failed for {symbol}: {e}")
+
+
+@shared_task
+def fetch_snapshot_prices():
+    logger.info("📈 Starting snapshot fetch task...")
+
+    for asset in Asset.objects.all():
+        yf_symbol = yahoo_map.get(asset.symbol)
+        if not yf_symbol:
+            logger.warning(f"❌ No Yahoo mapping for {asset.symbol}")
+            continue
+
+        try:
+            ticker = yf.Ticker(yf_symbol)
+            data = ticker.history(period="1d", interval="1m")
+
+            if not data.empty:
+                latest = data.iloc[-1]
+                ts = pd.to_datetime(latest.name, utc=True).tz_convert(timezone.get_current_timezone()).to_pydatetime()
+
+                PriceSnapshot.objects.get_or_create(
+                    asset=asset,
+                    timestamp=ts,
+                    defaults={
+                        "price": Decimal(latest["Close"]),
+                        "open": Decimal(latest["Open"]),
+                        "high": Decimal(latest["High"]),
+                        "low": Decimal(latest["Low"]),
+                        "close": Decimal(latest["Close"]),
+                        "volume": Decimal(latest.get("Volume", 0))
+                    }
+                )
+
+                # ✅ ✅ ✅ Trigger alert check
+                check_alerts_for_asset(asset, latest["Close"])
+
+                logger.info(f"✅ Snapshot + Alert Check complete for {asset.symbol} at {ts}")
+
+        except Exception as e:
+            logger.error(f"❌ Snapshot fetch failed for {asset.symbol}: {e}")
+
+from __future__ import absolute_import, unicode_literals
+import os
+from celery import Celery
+from celery.schedules import crontab
+
+# Set default Django settings module for 'celery' program
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'marketpulse.settings')
+
+app = Celery('marketpulse')
+
+# Load Celery config from Django settings with CELERY_ namespace
+app.config_from_object('django.conf:settings', namespace='CELERY')
+
+# Auto-discover tasks.py in installed apps
+app.autodiscover_tasks()
+
+# Schedule periodic tasks
+from celery.schedules import crontab
+
+app.conf.beat_schedule = {
+    'fetch-snapshots-every-minute': {
+        'task': 'trading.tasks.fetch_snapshot_prices',  # ✅ Correct function name
+        'schedule': crontab(),  # every 1 minute
+    },
+    'fetch-ohlc-every-minute': {
+        'task': 'trading.tasks.fetch_and_store_ohlc',
+        'schedule': crontab(),  # every 1 minute
+    },
+}
+
+# utils.py
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import Alert
+from decimal import Decimal
+import logging
+import time
+
+logger = logging.getLogger(__name__)
+
+def send_alert_email(user, alert):
+    subject = f"🚨 Price Alert Triggered for {alert.asset.symbol}"
+    direction_text = "above" if alert.direction == 'above' else "below"
+    message = (
+        f"Hi {user.username},\n\n"
+        f"The price of {alert.asset.symbol} has just moved {direction_text} your alert target of {alert.target_price}.\n\n"
+        f"Current condition has been met.\n\n"
+        f"— MarketPulse Team"
+    )
+
+    try:
+        time.sleep(1)  # optional buffer to avoid Gmail blocking
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+        logger.info(f"✅ Alert email sent to {user.email} for {alert.asset.symbol}")
+    except Exception as e:
+        logger.error(f"❌ Failed to send alert email to {user.email}: {e}")
+
+def check_alerts_for_asset(asset, latest_price):
+    alerts = Alert.objects.filter(asset=asset, is_triggered=False)
+    price = Decimal(str(latest_price))
+
+    for alert in alerts:
+        logger.info(f"🔍 Checking alert for {alert.asset.symbol} | Target: {alert.target_price} | Direction: {alert.direction} | Price: {price}")
+
+        should_trigger = (
+            alert.direction == 'above' and price > alert.target_price or
+            alert.direction == 'below' and price < alert.target_price
+        )
+
+        if should_trigger:
+            alert.is_triggered = True
+            alert.save(update_fields=['is_triggered'])
+            logger.info(f"🚨 Triggered alert for {alert.asset.symbol} (User: {alert.user.email})")
+            send_alert_email(alert.user, alert)
+// ===============================
+// 🌟 MarketPulse Dashboard Script (Updated)
+// ===============================
+
+let isMuted = false;
+let allData = [];
+
+
+// ✅ Play alert sound
+function playAlert(direction) {
+  if (isMuted) return;
+  const audio = direction === "above"
+    ? document.getElementById("soundAbove")
+    : document.getElementById("soundBelow");
+
+  audio.currentTime = 0;
+  audio.volume = parseFloat(document.getElementById("volumeControl").value);
+  audio.play().catch(e => console.warn("Sound error:", e));
+}
+
+
+// 🔁 Poll triggered alerts every 10s
+function pollAlerts() {
+  fetch('/api/alerts/triggered/')
+    .then(response => {
+      if (!response.ok) throw new Error("Network response was not ok");
+      return response.json();
+    })
+    .then(data => {
+      if (data.alerts && data.alerts.length > 0) {
+        data.alerts.forEach(alert => {
+          playAlert(alert.direction);  // ✅ central alert sound trigger
+        });
+      }
+    })
+    .catch(error => {
+      console.error("Alert fetch error:", error);
+    });
+}
+
+
+
+
+
+// ✅ Fetch latest snapshot prices
+function fetchData() {
+  fetch('/api/prices/')
+    .then(r => r.json())
+    .then(data => {
+      allData = data.snapshots || [];
+      populateDropdowns(allData);
+      renderTable(allData);
+    })
+    .catch(err => console.error("❌ Snapshot fetch failed:", err));
+}
+
+// ✅ Populate filters
+function populateDropdowns(data) {
+  const symbols = [...new Set(data.map(d => d.symbol))];
+  const dropdowns = ['symbolFilter', 'candlestickSymbol', 'lineChartSymbol'];
+
+  dropdowns.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '';
+    symbols.forEach(sym => {
+      const opt = document.createElement('option');
+      opt.value = sym;
+      opt.textContent = sym;
+      el.appendChild(opt);
+    });
+    el.value = symbols.includes("BTC/USD") ? "BTC/USD" : symbols[0] || "";
+  });
+
+  const label = document.getElementById("chartSymbolLabel");
+  if (label) label.textContent = document.getElementById("symbolFilter").value;
+}
+
+// ✅ Datatable Setup
+function renderTable(data) {
+  const table = $('#price-table').DataTable();
+  table.clear();
+  data.forEach(d => table.row.add([d.symbol, d.price, d.timestamp]));
+  table.draw();
+}
+
+// ✅ Line Chart (OHLC Close)
+function loadLineChartFromOHLC(symbol, start, end) {
+  const chart = document.getElementById("ohlcCloseChart");
+  const url = `/api/ohlc/?symbol=${symbol}` +
+              (start ? `&start=${start}` : '') +
+              (end ? `&end=${end}` : '');
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      const ohlc = data.ohlc || [];
+      const x = ohlc.map(d => new Date(d.timestamp));
+      const y = ohlc.map(d => d.close);
+
+      Plotly.newPlot(chart, [{
+        x: x, y: y, mode: 'lines+markers', type: 'scatter',
+        name: symbol, line: { color: '#007bff' }
+      }], {
+        margin: { t: 30, r: 20, b: 40, l: 50 },
+        yaxis: { title: "Price" }, xaxis: { title: "Time" },
+        template: isDarkMode() ? 'plotly_dark' : 'plotly_white'
+      });
+
+      document.getElementById("lineChartLastUpdated").textContent = new Date().toLocaleString();
+    })
+    .catch(e => console.error("❌ OHLC Line Chart error:", e));
+}
+
+// ✅ 📉 Line Price History Chart from snapshots
+function loadLinePriceHistoryChart(symbol, start, end) {
+  const chart = document.getElementById("priceHistoryChart");  // ✅ Correct ID
+  const url = `/api/line-price-data/?symbol=${symbol}` +
+              (start ? `&start=${start}` : '') +
+              (end ? `&end=${end}` : '');
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      const priceData = data.data || [];
+      const x = priceData.map(d => new Date(d.timestamp));
+      const y = priceData.map(d => Number(d.price));
+
+      if (!x.length || !y.length || y.some(isNaN)) {
+        chart.innerHTML = "⚠️ No valid price history data.";
+        return;
+      }
+
+      Plotly.newPlot(chart, [{
+        x: x, y: y, mode: 'lines+markers', type: 'scatter',
+        name: symbol, line: { color: '#00b894' }
+      }], {
+        title: `${symbol} Price History`,
+        margin: { t: 30, r: 20, b: 40, l: 50 },
+        yaxis: { title: "Price" },
+        xaxis: { title: "Time" },
+        template: isDarkMode() ? 'plotly_dark' : 'plotly_white'
+      });
+
+      document.getElementById("lineChartLastUpdated").textContent = new Date().toLocaleString();
+    })
+    .catch(e => console.error("❌ Line Chart error:", e));
+}
+
+
+
+// ✅ Candlestick + Volume Chart
+function loadCandlestickChart(symbol, start, end) {
+  const url = `/api/ohlc/?symbol=${symbol}` +
+              (start ? `&start=${start}` : '') +
+              (end ? `&end=${end}` : '');
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      const ohlc = data.ohlc || [];
+      if (!ohlc.length) {
+        document.getElementById("candlestickChart").innerHTML = "⚠️ No OHLC data.";
+        return;
+      }
+
+      const ts = ohlc.map(d => new Date(d.timestamp));
+
+      const open = ohlc.map(d => d.open);
+      const high = ohlc.map(d => d.high);
+      const low = ohlc.map(d => d.low);
+      const close = ohlc.map(d => d.close);
+      const volume = ohlc.map(d => d.volume);
+
+      const traceCandle = {
+          x: ts,
+          open: open,
+          high: high,
+          low: low,
+          close: close,
+          type: 'candlestick',
+          name: symbol,
+          increasing: {
+            line: { color: '#00e676' },
+            fillcolor: '#00e676'
+          },
+          decreasing: {
+            line: { color: '#ff1744' },
+            fillcolor: '#ff1744'
+          },
+          whiskerwidth: 0.3,
+          line: { width: 1 },
+          showlegend: false
+        };
+
+
+      const traceVolume = {
+        x: ts,
+        y: volume,
+        type: 'bar',
+        name: 'Volume',
+        yaxis: 'y2',
+        marker: { color: '#a29bfe' },
+        opacity: 0.3,
+        showlegend: false
+      };
+
+      const isDark = isDarkMode();
+
+const layout = {
+  title: {
+    text: `${symbol} Candlestick Chart`,
+    font: { size: 20, color: isDark ? '#ffffff' : '#000000' }
+  },
+  template: isDark ? 'plotly_dark' : 'plotly_white',
+  height: 550,
+  margin: { t: 40, b: 60, l: 60, r: 20 },
+  plot_bgcolor: isDark ? '#1e1e1e' : '#ffffff',
+  paper_bgcolor: isDark ? '#1e1e1e' : '#ffffff',
+  font: {
+    color: isDark ? '#ffffff' : '#000000',
+    size: 12
+  },
+  xaxis: {
+    title: 'Time',
+    type: 'date',
+    rangeslider: { visible: false },
+    tickangle: -30,
+    tickformat: '%H:%M',
+    showgrid: true,
+    gridcolor: isDark ? '#333' : '#eee',
+    tickfont: { size: 10 }
+  },
+  yaxis: {
+    title: 'Price',
+    domain: [0.3, 1],
+    tickprefix: '$',
+    showgrid: true,
+    gridcolor: isDark ? '#333' : '#eee'
+  },
+  yaxis2: {
+    title: 'Volume',
+    domain: [0, 0.25],
+    showgrid: true,
+    gridcolor: isDark ? '#333' : '#eee'
+  },
+  bargap: 0.05,
+  showlegend: false
+};
+
+
+      Plotly.newPlot('candlestickChart', [traceCandle, traceVolume], layout);
+      document.getElementById("candlestickLastUpdated").textContent = new Date().toLocaleString();
+    })
+    .catch(err => console.error("❌ Candle chart error:", err));
+}
+
+
+
+
+function renderOhlcTable(data) {
+  const tableBody = document.querySelector('#ohlcTable tbody');
+  if (!tableBody) return;
+
+  tableBody.innerHTML = '';
+
+  if (!data || !data.ohlc || data.ohlc.length === 0) {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td colspan="8" class="text-warning text-center">⚠️ No OHLC data returned.</td>`;
+    tableBody.appendChild(row);
+    return;
+  }
+
+  const selectedSymbol = document.getElementById("symbolFilter")?.value || '';
+
+  data.ohlc.forEach(candle => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td class="fw-semibold">${selectedSymbol}</td>
+      <td>${new Date(candle.timestamp).toLocaleString()}</td>
+      <td>$${candle.open.toFixed(2)}</td>
+      <td>$${candle.high.toFixed(2)}</td>
+      <td>$${candle.low.toFixed(2)}</td>
+      <td>$${candle.close.toFixed(2)}</td>
+      <td>${candle.volume.toFixed(2)}</td>
+      <td>API</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+
+function refreshOhlcTable() {
+  const symbol = document.getElementById("symbolFilter")?.value;
+  if (!symbol) return;
+
+  const url = `/api/ohlc/?symbol=${encodeURIComponent(symbol)}`;
+
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      renderOhlcTable(data);
+      if (data.alert_triggered) {
+        const sound = document.getElementById("alertSound");
+        if (sound) {
+          sound.volume = 0.5;
+          sound.play();
+        }
+      }
+    })
+    .catch(error => {
+      console.error("❌ OHLC Table fetch error:", error);
+    });
+}
+
+
+
+
+
+
+// ✅ Dark Mode Checker
+function isDarkMode() {
+  return document.body.classList.contains("dark-mode");
+}
+
+// ✅ Events
+document.addEventListener("DOMContentLoaded", () => {
+  // 🌙 Apply Dark Mode
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark-mode");
+    document.getElementById("themeToggle").checked = true;
+  }
+
+  // 🌗 Theme Toggle Event
+  document.getElementById("themeToggle")?.addEventListener("change", () => {
+    document.body.classList.toggle("dark-mode");
+    localStorage.setItem("theme", isDarkMode() ? "dark" : "light");
+
+    // Reload charts with current symbols
+    const candleSym = document.getElementById("candlestickSymbol")?.value;
+    const lineSym = document.getElementById("lineChartSymbol")?.value;
+    const lineStart = document.getElementById("lineStartDate")?.value;
+    const lineEnd = document.getElementById("lineEndDate")?.value;
+
+    if (candleSym) loadCandlestickChart(candleSym);
+    if (lineSym) loadLinePriceHistoryChart(lineSym, lineStart, lineEnd);
+  });
+
+  // 🏷️ Label Text Update
+  document.getElementById("symbolFilter")?.addEventListener("change", (e) => {
+    const label = document.getElementById("chartSymbolLabel");
+    if (label) {
+      label.classList.add("fade-out");
+      setTimeout(() => {
+        label.textContent = e.target.value;
+        label.classList.remove("fade-out");
+      }, 300);
+    }
+  });
+
+  // 🕯️ Candlestick Symbol Change (Only candlestick chart)
+  document.getElementById("candlestickSymbol")?.addEventListener("change", e => {
+    const sym = e.target.value;
+    const start = document.getElementById("candleStartDate")?.value;
+    const end = document.getElementById("candleEndDate")?.value;
+    loadCandlestickChart(sym, start, end);
+  });
+
+  // 📉 Line Chart Symbol Change (Only line chart)
+  document.getElementById("lineChartSymbol")?.addEventListener("change", e => {
+    const sym = e.target.value;
+    const start = document.getElementById("lineStartDate")?.value;
+    const end = document.getElementById("lineEndDate")?.value;
+    loadLinePriceHistoryChart(sym, start, end);
+  });
+
+  // 📅 Apply Line Chart Date Range
+  document.getElementById("applyLineRange")?.addEventListener("click", () => {
+    const sym = document.getElementById("lineChartSymbol")?.value;
+    const start = document.getElementById("lineStartDate")?.value;
+    const end = document.getElementById("lineEndDate")?.value;
+    if (sym) loadLinePriceHistoryChart(sym, start, end);
+  });
+
+  // 🔊 Volume Control
+  document.getElementById("volumeControl")?.addEventListener("input", e => {
+    document.getElementById("alertSound").volume = parseFloat(e.target.value);
+  });
+
+  // 🔇 Mute Button Toggle
+  document.getElementById("muteButton")?.addEventListener("click", () => {
+    isMuted = !isMuted;
+    document.getElementById("muteButton").textContent = isMuted ? "🔇 Unmute" : "🔈 Mute";
+  });
+
+  // 🎵 Test Sound
+ // 🎵 Test Sound (Above and Below)
+document.getElementById("playTestSound")?.addEventListener("click", () => {
+  if (isMuted) return;
+  const above = document.getElementById("soundAbove");
+  const below = document.getElementById("soundBelow");
+  const volume = parseFloat(document.getElementById("volumeControl").value);
+
+  [above, below].forEach(sound => {
+    sound.currentTime = 0;
+    sound.volume = volume;
+    sound.play().catch(e => console.warn("Test sound error:", e));
+  });
+});
+
+  // 🚀 Initial Load
+  fetchData();
+
+  const defaultSymbol = document.getElementById("candlestickSymbol")?.value || "BTC/USD";
+  const lineDefault = document.getElementById("lineChartSymbol")?.value || defaultSymbol;
+
+  const today = new Date().toISOString().split("T")[0];
+  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
+  document.getElementById("lineStartDate").value = weekAgo;
+  document.getElementById("lineEndDate").value = today;
+
+  loadCandlestickChart(defaultSymbol);
+  loadLinePriceHistoryChart(lineDefault, weekAgo, today);
+
+  refreshOhlcTable();
+
+});
+
+// 🔁 Auto-refresh every 30s
+// Start polling alerts every 30 seconds
+setInterval(() => {
+  const candleSym = document.getElementById("candlestickSymbol")?.value;
+  const lineSym = document.getElementById("lineChartSymbol")?.value;
+  const startLine = document.getElementById("lineStartDate")?.value;
+  const endLine = document.getElementById("lineEndDate")?.value;
+
+  if (candleSym) loadCandlestickChart(candleSym);
+  if (lineSym) loadLinePriceHistoryChart(lineSym, startLine, endLine);
+  fetchData();           // 🔁 Refresh price table
+  refreshOhlcTable();    // 🔁 Refresh OHLC candles
+  pollAlerts();          // 🔁 Check alerts
+}, 30000); // every 30 seconds
+
+{% extends "trading/base.html" %}
+{% load static %}
+{% load tz %}
+
+{% block title %}Dashboard - MarketPulse{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 dashboard-page">
+
+  <!-- 🌙 Theme Toggle -->
+  <div class="form-check form-switch ms-auto mb-3">
+    <input class="form-check-input" type="checkbox" id="themeToggle">
+    <label class="form-check-label text-muted" for="themeToggle">🌙 Dark Mode</label>
+
+  </div>
+
+
+  <!-- 🧭 Dashboard Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h1 class="mb-0 d-flex align-items-center gap-2">
+      <span class="dashboard-heading-emoji">📈</span>
+      <span class="dashboard-heading-text">MarketPulse Dashboard</span>
+
+
+    </h1>
+    <span class="badge bg-primary p-2">
+      Updated: {{ now|date:"Y-m-d H:i:s" }}
+    </span>
+  </div>
+
+  <!-- 📊 Stat Cards -->
+   <div class="row g-4 mb-5">
+    <div class="col-12 col-md-4">
+      <div class="stat-card card-bg-gradient-blue">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="icon">🧮</div>
+          <i class="bi bi-bar-chart-line-fill fs-2 opacity-75"></i>
+        </div>
+        <div class="mt-3 label">Active Symbols</div>
+        <div class="value">{{ symbols|length }}</div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="stat-card card-bg-gradient-red">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="icon">🚨</div>
+          <i class="bi bi-exclamation-triangle-fill fs-2 opacity-75"></i>
+        </div>
+        <div class="mt-3 label">Total Alerts</div>
+        <div class="value">{{ user.alerts.count }}</div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="stat-card card-bg-gradient-green">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="icon">📂</div>
+          <i class="bi bi-folder-fill fs-2 opacity-75"></i>
+        </div>
+        <div class="mt-3 label">Open Trades</div>
+        <div class="value">{{ open_trades_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⚙️ Market Controls -->
+   <div class="card shadow-sm border-0 card-section">
+    <div class="card-header bg-themed d-flex justify-content-between align-items-center">
+      <span>⚙️ Market Controls</span>
+    </div>
+    <div class="card-body">
+      <form class="row g-3">
+        <div class="col-md-4">
+          <label for="timeRange" class="form-label">⏳ Time Range:</label>
+          <select id="timeRange" class="form-select form-select-sm">
+            <option value="30m" selected>Last 30 Min</option>
+            <option value="1h">1 Hour</option>
+            <option value="24h">24 Hours</option>
+          </select>
+        </div>
+        <div class="row mt-3">
+          <div class="col-md-4">
+            <label for="volumeControl" class="form-label">🔊 Volume:</label>
+            <input id="volumeControl" type="range" min="0" max="1" step="0.1" value="0.5" class="form-range">
+          </div>
+          <div class="col-md-4 d-flex align-items-end gap-2">
+            <button id="muteButton" type="button" class="btn btn-outline-dark btn-sm">🔈 Mute</button>
+            <button id="playTestSound" type="button" class="btn btn-outline-warning btn-sm">🔊 Test Sound</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- 📉 Line Price History Chart -->
+  <div class="card shadow-sm mb-5 chart-card">
+    <div class="card-header bg-themed d-flex justify-content-between align-items-center">
+      <div>📉 Line Price History Chart</div>
+      <small class="text-light">Last updated: <span id="lineChartLastUpdated">—</span></small>
+    </div>
+    <div class="card-body">
+      <div class="row align-items-end mb-3 g-3">
+        <div class="col-md-4">
+          <label for="lineChartSymbol" class="form-label">📌 Select Symbol:</label>
+          <select id="lineChartSymbol" class="form-select form-select-sm">
+            {% for symbol in symbols %}
+              <option value="{{ symbol }}">{{ symbol }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="lineStartDate" class="form-label">📅 Start Date:</label>
+          <input type="date" id="lineStartDate" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-3">
+          <label for="lineEndDate" class="form-label">📅 End Date:</label>
+          <input type="date" id="lineEndDate" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-2 d-grid">
+          <button class="btn btn-outline-success btn-sm" onclick="applyLineChartRange()">🔄 Apply</button>
+
+        </div>
+      </div>
+      <div id="priceHistoryChart" style="height: 300px;"></div>
+    </div>
+  </div>
+
+  <!-- 🕯️ Candlestick Chart -->
+  <div class="card shadow-sm mb-5 chart-card">
+    <div class="card-header bg-themed d-flex justify-content-between align-items-center">
+      <div>🕯️ Candlestick Chart (with Volume)</div>
+      <small class="text-light">Last updated: <span id="candlestickLastUpdated">—</span></small>
+    </div>
+    <div class="card-body">
+      <div class="row align-items-end mb-3 g-3">
+        <div class="col-md-4">
+          <label for="candlestickSymbol" class="form-label">📌 Select Symbol:</label>
+          <select id="candlestickSymbol" class="form-select form-select-sm">
+            {% for symbol in symbols %}
+              <option value="{{ symbol }}">{{ symbol }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="candleStartDate" class="form-label">📅 Start Date:</label>
+          <input type="date" id="candleStartDate" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-3">
+          <label for="candleEndDate" class="form-label">📅 End Date:</label>
+          <input type="date" id="candleEndDate" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-2 d-grid">
+          <button class="btn btn-outline-primary btn-sm" onclick="applyCandlestickRange()">🔄 Apply</button>
+        </div>
+      </div>
+      <div id="candlestickChart" style="height: 400px;"></div>
+    </div>
+  </div>
+
+  <!-- 📋 Live Price Table -->
+  <div class="card shadow-sm mb-5 table-card">
+    <div class="card-header bg-themed d-flex justify-content-between align-items-center">
+      <span>📋 Live Price Table</span>
+    </div>
+    <div class="card-body table-responsive px-0">
+      <!-- ✅ Added filter -->
+      <div class="mb-3 d-flex justify-content-end align-items-center gap-2 px-3">
+        <label for="livePriceSymbolFilter" class="form-label mb-0">🔍 Filter by Symbol:</label>
+        <select id="livePriceSymbolFilter" class="form-select form-select-sm" style="max-width: 200px;">
+          <option value="">All Symbols</option>
+          {% for symbol in symbols %}
+            <option value="{{ symbol }}">{{ symbol }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <table id="price-table" class="table table-striped table-hover align-middle text-center mb-0">
+        <thead class="table-primary">
+          <tr>
+            <th>🔠 Symbol</th>
+            <th>💲 Price</th>
+            <th>🕒 Time (UTC)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for snapshot in snapshots %}
+            <tr>
+              <td class="fw-semibold">{{ snapshot.asset.symbol }}</td>
+              <td>${{ snapshot.price|floatformat:2 }}</td>
+              <td class="text-muted">{% localtime on %}{{ snapshot.timestamp|date:"F j, Y H:i" }}{% endlocaltime %}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="3" class="text-danger text-center">🚫 No data available.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 📈 OHLC Table -->
+  <div class="card shadow-sm mb-5 table-card">
+    <div class="card-header bg-themed fw-bold d-flex justify-content-between align-items-center">
+      <span>📈 Recent OHLC Candles</span>
+    </div>
+    <div class="card-body table-responsive">
+      <div class="mb-3 d-flex justify-content-end align-items-center gap-2">
+        <label for="ohlcSymbolFilter" class="form-label mb-0">🔍 Filter by Symbol:</label>
+        <select id="ohlcSymbolFilter" class="form-select form-select-sm" style="max-width: 200px;">
+          <option value="">All Symbols</option>
+          {% for symbol in symbols %}
+            <option value="{{ symbol }}">{{ symbol }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <table id="ohlcTable" class="table table-striped align-middle text-center w-100">
+        <thead class="table-success">
+          <tr>
+            <th>🔠 Symbol</th>
+            <th>🕒 Time</th>
+            <th>🔓 Open</th>
+            <th>🚀 High</th>
+            <th>📉 Low</th>
+            <th>✅ Close</th>
+            <th>🔊 Volume</th>
+            <th>📦 Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for candle in ohlc %}
+            <tr>
+              <td class="fw-semibold">{{ candle.asset.symbol }}</td>
+              <td>{{ candle.timestamp|date:"Y-m-d H:i" }}</td>
+              <td>${{ candle.open|floatformat:2 }}</td>
+              <td>${{ candle.high|floatformat:2 }}</td>
+              <td>${{ candle.low|floatformat:2 }}</td>
+              <td>${{ candle.close|floatformat:2 }}</td>
+              <td>{{ candle.volume|floatformat:2 }}</td>
+              <td>{{ candle.source|title }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center text-warning">⚠️ No OHLC data available.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 🔊 Sound -->
+<audio id="alertSound" src="{% static 'sounds/sound_up.mp3' %}" preload="auto"></audio>
+<audio id="soundAbove" src="{% static 'sounds/sound_up.mp3' %}" preload="auto"></audio>
+<audio id="soundBelow" src="{% static 'sounds/sound_down.mp3' %}" preload="auto"></audio>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+
+<script>
+  $(document).ready(function () {
+    const liveTable = $('#price-table').DataTable({ pageLength: 10 });
+    const ohlcTable = $('#ohlcTable').DataTable({ pageLength: 10 });
+
+    $('#ohlcSymbolFilter').on('change', function () {
+      const selected = $(this).val();
+      ohlcTable.column(0).search(selected ? '^' + selected + '$' : '', true, false).draw();
+    });
+
+    $('#livePriceSymbolFilter').on('change', function () {
+      const selected = $(this).val();
+      liveTable.column(0).search(selected ? '^' + selected + '$' : '', true, false).draw();
+    });
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    // ✅ Load charts on initial page load
+    const lineSymbol = document.getElementById("lineChartSymbol").value;
+    const candleSymbol = document.getElementById("candlestickSymbol").value;
+    loadLinePriceHistoryChart(lineSymbol);
+    loadCandlestickChart(candleSymbol);
+
+    // ✅ Bind change for line chart only
+    document.getElementById("lineChartSymbol").addEventListener("change", function () {
+      const symbol = this.value;
+      const start = document.getElementById("lineStartDate").value;
+      const end = document.getElementById("lineEndDate").value;
+      loadLinePriceHistoryChart(symbol, start, end);
+    });
+
+    // ✅ Bind change for candlestick chart only
+    document.getElementById("candlestickSymbol").addEventListener("change", function () {
+      const symbol = this.value;
+      const start = document.getElementById("candleStartDate").value;
+      const end = document.getElementById("candleEndDate").value;
+      loadCandlestickChart(symbol, start, end);
+    });
+  });
+
+  // ✅ Range filters
+  function applyLineChartRange() {
+    const symbol = document.getElementById("lineChartSymbol").value;
+    const start = document.getElementById("lineStartDate").value;
+    const end = document.getElementById("lineEndDate").value;
+    loadLinePriceHistoryChart(symbol, start, end);
+  }
+
+  function applyCandlestickRange() {
+    const symbol = document.getElementById("candlestickSymbol").value;
+    const start = document.getElementById("candleStartDate").value;
+    const end = document.getElementById("candleEndDate").value;
+    loadCandlestickChart(symbol, start, end);
+  }
+</script>
+
+
+
+{% endblock %}

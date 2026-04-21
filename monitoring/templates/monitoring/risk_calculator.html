@@ -1,0 +1,153 @@
+{% extends "monitoring/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Unified Risk Calculator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+
+    <div class="card shadow-lg mb-4 border-0">
+      <div class="card-header bg-gradient bg-primary text-white py-3">
+        <h2 class="mb-0"><i class="bi bi-tools"></i> Unified Risk Calculator</h2>
+      </div>
+      <div class="card-body bg-light">
+
+        <p class="text-muted mb-4">
+          Select a calculation mode and enter your parameters to dynamically compute your risk, position size, and targets.
+        </p>
+
+        <form method="post" id="riskForm" class="mb-4">
+          {% csrf_token %}
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold text-primary">Calculator Mode:</label>
+            <div class="ms-2">
+              {{ form.mode }}
+            </div>
+          </div>
+
+          <div id="accountSizeGroup" class="mb-3">
+            {{ form.account_size|as_crispy_field }}
+          </div>
+          <div id="riskPercentGroup" class="mb-3">
+            {{ form.risk_percent|as_crispy_field }}
+          </div>
+          <div id="riskAmountGroup" class="mb-3">
+            {{ form.risk_amount|as_crispy_field }}
+          </div>
+          <div id="desiredProfitGroup" class="mb-3">
+            {{ form.desired_profit|as_crispy_field }}
+          </div>
+          <div id="entryPriceGroup" class="mb-3">
+            {{ form.entry_price|as_crispy_field }}
+          </div>
+          <div id="stopLossGroup" class="mb-3">
+            {{ form.stop_loss_price|as_crispy_field }}
+          </div>
+          <div id="targetPriceGroup" class="mb-3">
+            {{ form.target_price|as_crispy_field }}
+          </div>
+          <div id="volumeGroup" class="mb-3">
+            {{ form.volume|as_crispy_field }}
+          </div>
+
+          <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
+            <i class="bi bi-calculator"></i> Calculate
+          </button>
+        </form>
+
+        {% if result %}
+        <div class="card shadow border-0">
+          <div class="card-header bg-success text-white">
+            <i class="bi bi-graph-up-arrow"></i> Calculation Results
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              {% for key, value in result.items %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="fw-semibold text-dark">{{ key|capfirst|cut:"_" }}:</span>
+                <span class="badge rounded-pill bg-info text-dark fs-6">{{ value|floatformat:4 }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const modeRadios = document.querySelectorAll('input[name="mode"]');
+  const groups = {
+    accountSizeGroup: document.getElementById("accountSizeGroup"),
+    riskPercentGroup: document.getElementById("riskPercentGroup"),
+    riskAmountGroup: document.getElementById("riskAmountGroup"),
+    desiredProfitGroup: document.getElementById("desiredProfitGroup"),
+    entryPriceGroup: document.getElementById("entryPriceGroup"),
+    stopLossGroup: document.getElementById("stopLossGroup"),
+    targetPriceGroup: document.getElementById("targetPriceGroup"),
+    volumeGroup: document.getElementById("volumeGroup")
+  };
+
+  function updateVisibility() {
+    for (let key in groups) {
+      groups[key].style.display = "none";
+      const inputs = groups[key].querySelectorAll("input");
+      inputs.forEach(input => input.disabled = true);
+    }
+
+    const selected = document.querySelector('input[name="mode"]:checked');
+    if (!selected) return;
+
+    const mode = selected.value;
+
+    function showEnable(groupKey) {
+      groups[groupKey].style.display = "block";
+      const inputs = groups[groupKey].querySelectorAll("input");
+      inputs.forEach(input => input.disabled = false);
+    }
+
+    if (mode === "volume") {
+      showEnable("riskAmountGroup");
+      showEnable("entryPriceGroup");
+      showEnable("stopLossGroup");
+    } else if (mode === "stoploss") {
+      showEnable("riskAmountGroup");
+      showEnable("entryPriceGroup");
+      showEnable("volumeGroup");
+    } else if (mode === "target") {
+      showEnable("desiredProfitGroup");
+      showEnable("entryPriceGroup");
+      showEnable("volumeGroup");
+    } else if (mode === "riskreward") {
+      showEnable("entryPriceGroup");
+      showEnable("stopLossGroup");
+      showEnable("targetPriceGroup");
+    } else if (mode === "riskpercent") {
+      showEnable("accountSizeGroup");
+      showEnable("riskPercentGroup");
+      showEnable("entryPriceGroup");
+      showEnable("stopLossGroup");
+    } else if (mode === "targetprofitvolume") {
+      showEnable("desiredProfitGroup");
+      showEnable("entryPriceGroup");
+      showEnable("targetPriceGroup");
+    }
+  }
+
+  updateVisibility();
+
+  modeRadios.forEach(radio => {
+    radio.addEventListener("change", updateVisibility);
+  });
+});
+</script>
+{% endblock %}

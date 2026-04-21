@@ -1,0 +1,24 @@
+{% extends "monitoring/base.html" %}
+{% block title %}Create Alert{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="my-4">🔔 Create Price Alert</h1>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      {{ form.asset.label_tag }}
+      {{ form.asset }}
+    </div>
+    <div class="mb-3">
+      {{ form.direction.label_tag }}
+      {{ form.direction }}
+    </div>
+    <div class="mb-3">
+      {{ form.target_price.label_tag }}
+      {{ form.target_price }}
+    </div>
+    <button type="submit" class="btn btn-primary">Create Alert</button>
+  </form>
+</div>
+{% endblock %}

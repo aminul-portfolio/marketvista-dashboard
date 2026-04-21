@@ -1,0 +1,152 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}MarketVista Dashboard{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/legacy_ui.css' %}">
+  <link rel="stylesheet" href="{% static 'css/marketvista.css' %}">
+
+  <link rel="icon" href="{% static 'img/marketpulse-icon.png' %}" type="image/png">
+</head>
+<body class="marketvista-shell">
+
+{% with current=request.resolver_match.url_name %}
+<nav class="navbar navbar-expand-lg sticky-top mv-navbar">
+  <div class="container-fluid px-3 px-lg-4">
+    <a class="navbar-brand mv-brand d-flex align-items-center gap-2" href="{% url 'monitoring:home' %}">
+      <i class="bi bi-broadcast-pin fs-5"></i>
+      <span>MarketVista Dashboard</span>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mvNavbar" aria-controls="mvNavbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mvNavbar">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+        <li class="nav-item">
+          <a class="nav-link mv-nav-link {% if current == 'home' %}active{% endif %}" href="{% url 'monitoring:home' %}">
+            <i class="bi bi-house-door"></i> Home
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link mv-nav-link {% if current == 'overview' %}active{% endif %}" href="{% url 'monitoring:overview' %}">
+            <i class="bi bi-grid-1x2"></i> Overview
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link mv-nav-link {% if current == 'dashboard' %}active{% endif %}" href="{% url 'monitoring:dashboard' %}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link mv-nav-link {% if current == 'alert_list' or current == 'alert_add' or current == 'create_alert' %}active{% endif %}" href="{% url 'monitoring:alert_list' %}">
+            <i class="bi bi-bell"></i> Alerts
+          </a>
+        </li>
+
+        {% if user.is_authenticated %}
+          <li class="nav-item ms-lg-2 mv-mobile-actions">
+            <a href="{% url 'monitoring:create_alert' %}" class="btn mv-primary-btn d-inline-flex align-items-center gap-2">
+              <i class="bi bi-plus-circle"></i>
+              <span>Create Alert</span>
+            </a>
+          </li>
+        {% endif %}
+
+        {% if user.is_staff %}
+          <li class="nav-item">
+            <a class="nav-link mv-nav-link mv-admin-link" href="/admin/">
+              <i class="bi bi-shield-lock"></i> Admin
+            </a>
+          </li>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <form method="post" action="{% url 'monitoring:logout' %}" class="m-0">
+              {% csrf_token %}
+              <button type="submit" class="nav-link mv-nav-link btn btn-link text-decoration-none">
+                <i class="bi bi-box-arrow-right"></i> Logout
+              </button>
+            </form>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link mv-nav-link {% if current == 'login' %}active{% endif %}" href="{% url 'monitoring:login' %}">
+              <i class="bi bi-box-arrow-in-right"></i> Login
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endwith %}
+
+<section class="mv-suite-strip py-2">
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="mv-suite-rail">
+      <div class="mv-suite-rail-primary">
+        <i class="bi bi-diagram-3"></i>
+        <strong>DataBridge → MarketVista → RiskWise → TradeIntel</strong>
+      </div>
+      <div class="mv-suite-rail-secondary">
+        Monitoring layer for signal discovery, alert review, and routing to deeper analysis.
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container-fluid px-3 px-lg-4 mv-page-shell">
+  {% if messages %}
+    <div class="mb-4">
+      {% for message in messages %}
+        <div class="alert mv-alert alert-dismissible fade show" role="alert">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-info-circle mt-1"></i>
+            <div>{{ message }}</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="mv-footer py-3">
+  <div class="container-fluid px-3 px-lg-4 d-flex flex-column flex-lg-row justify-content-between gap-2">
+    <div>MarketVista Dashboard — monitoring-first analyst visibility for your fintech suite.</div>
+    <div class="small">
+      DataBridge → MarketVista → RiskWise → TradeIntel
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+  });
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

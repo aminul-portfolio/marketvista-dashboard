@@ -1,0 +1,16 @@
+Django
+python-dotenv
+dj-database-url
+whitenoise
+gunicorn
+
+django-crispy-forms
+crispy-bootstrap5
+django-widget-tweaks
+
+pandas
+matplotlib
+XlsxWriter
+
+celery
+redis
