@@ -1,4 +1,4 @@
-{% extends "monitoring/base_premium.html" %}
+{% extends "monitoring/base.html" %}
 {% load static %}
 
 {% block title %}{{ asset.symbol }}{% endblock %}
@@ -9,59 +9,333 @@
 
 {% block topbar_right %}
   {% if freshness_signal and freshness_signal.delay_minutes is not None %}
-    <span class="mv-freshness">Updated {{ freshness_signal.delay_minutes }} min ago</span>
+    <span class="mv-freshness">{{ freshness_signal.label }} · {{ freshness_signal.delay_minutes }} min ago</span>
   {% else %}
-    <span class="mv-freshness">No freshness data</span>
+    <span class="mv-freshness">Asset monitoring context</span>
   {% endif %}
+{% endblock %}
+
+{% block attr_strip %}
+<div class="mv-attr-strip">
+  <div class="mv-attr-left">
+    <div class="mv-attr-dot"></div>
+    <span class="mv-attr-txt">Detailed asset inspection for signals, alerts, watchlist state, and RiskWise routing.</span>
+  </div>
+  <span class="mv-attr-right">Chart review · signal history · alert context</span>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .mv-ad-top {
+    display: grid;
+    grid-template-columns: 1.12fr 0.88fr;
+    gap: 14px;
+  }
+
+  .mv-ad-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .mv-ad-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .mv-ad-mini {
+    background: rgba(8,16,36,0.45);
+    border: 0.5px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .mv-ad-mini-label {
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.36);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .mv-ad-mini-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e2e8f0;
+  }
+
+  .mv-ad-mini-sub {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: rgba(255,255,255,0.42);
+  }
+
+  .mv-ad-context-card {
+    height: 100%;
+  }
+
+  .mv-ad-context-title {
+    margin-bottom: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.38);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .mv-ad-context-copy {
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.86);
+  }
+
+  .mv-ad-context-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.8);
+  }
+
+  .mv-ad-chart-wrap {
+    margin-top: 14px;
+  }
+
+  .mv-ad-chart-box {
+    height: 190px;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    padding: 8px 0 4px;
+  }
+
+  .mv-ad-bar {
+    flex: 1;
+    min-width: 6px;
+    border-radius: 3px 3px 0 0;
+    background: rgba(13,148,136,0.30);
+  }
+
+  .mv-ad-bar.latest {
+    background: #0d9488;
+  }
+
+  .mv-ad-chart-foot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.24);
+  }
+
+  .mv-ad-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .mv-ad-card-title {
+    margin-bottom: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.38);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .mv-ad-empty {
+    padding: 26px 18px;
+    text-align: center;
+  }
+
+  .mv-ad-empty-title {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: rgba(255,255,255,0.76);
+  }
+
+  .mv-ad-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .mv-ad-actions .mv-btn,
+  .mv-ad-actions .mv-btn-solid {
+    min-height: 46px;
+    justify-content: center;
+  }
+
+  .mv-ad-back {
+    margin-top: 10px;
+  }
+
+  .mv-ad-back a {
+    font-size: 12px;
+    color: rgba(255,255,255,0.42);
+    text-decoration: none;
+  }
+
+  .mv-ad-back a:hover {
+    color: #0d9488;
+  }
+
+  @media (max-width: 1150px) {
+    .mv-ad-top,
+    .mv-ad-main {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .mv-ad-meta-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .mv-ad-chart-box {
+      height: 160px;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block page_content %}
 
-<div class="mv-asset-hd">
-  <div class="mv-ah-left">
-    <div class="mv-asset-icon">{{ asset.symbol|slice:":2" }}</div>
-    <div>
-      <div class="mv-asset-name">{{ asset.name }}</div>
-      <div class="mv-asset-sub">
-        <span class="mv-asset-sym">{{ asset.symbol }}</span>
-        <span class="mv-asset-cls">{{ asset.get_asset_type_display }}</span>
+<div class="mv-ad-top">
+  <section class="mv-card mv-ad-hero">
+    <div class="mv-asset-hd">
+      <div class="mv-ah-left">
+        <div class="mv-asset-icon">{{ asset.symbol|slice:":2" }}</div>
+        <div>
+          <div class="mv-asset-name">{{ asset.name }}</div>
+          <div class="mv-asset-sub">
+            <span class="mv-asset-sym">{{ asset.symbol }}</span>
+            <span class="mv-asset-cls">{{ asset.get_asset_type_display }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mv-ah-right">
+        {% if latest_snapshot %}
+          <div class="mv-asset-price">${{ latest_snapshot.price|floatformat:2 }}</div>
+          {% if pct_move is not None %}
+            <div class="mv-price-chg {% if pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
+              {% if pct_move >= 0 %}+{% endif %}{{ pct_move|floatformat:2 }}% (3-day)
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="mv-asset-price mv-muted">No price data</div>
+        {% endif %}
+
+        {% if on_watchlist %}
+          <form method="post" action="{% url 'monitoring:watchlist_remove' asset.symbol %}">
+            {% csrf_token %}
+            <button type="submit" class="mv-wl-btn" style="margin-top:8px;">
+              ★ On your watchlist
+            </button>
+          </form>
+        {% else %}
+          <form method="post" action="{% url 'monitoring:watchlist_add' asset.symbol %}">
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="mv-wl-btn"
+              style="margin-top:8px;border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.42);"
+            >
+              ☆ Add to watchlist
+            </button>
+          </form>
+        {% endif %}
       </div>
     </div>
-  </div>
 
-  <div class="mv-ah-right">
-    {% if latest_snapshot %}
-      <div class="mv-asset-price">${{ latest_snapshot.price|floatformat:2 }}</div>
-      {% if pct_move or pct_move == 0 %}
-        <div class="mv-price-chg {% if pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
-          {% if pct_move >= 0 %}+{% endif %}{{ pct_move|floatformat:2 }}% (3-day)
+    <div class="mv-ad-meta-grid">
+      <div class="mv-ad-mini">
+        <div class="mv-ad-mini-label">Current price</div>
+        <div class="mv-ad-mini-value">
+          {% if latest_snapshot %}
+            ${{ latest_snapshot.price|floatformat:2 }}
+          {% else %}
+            —
+          {% endif %}
         </div>
-      {% endif %}
-    {% else %}
-      <div class="mv-asset-price mv-muted">No price data</div>
-    {% endif %}
+        <div class="mv-ad-mini-sub">Latest stored snapshot for this asset.</div>
+      </div>
 
-    {% if on_watchlist %}
-      <form method="post" action="{% url 'monitoring:watchlist_remove' asset.symbol %}">
-        {% csrf_token %}
-        <button type="submit" class="mv-wl-btn" style="margin-top:8px;">★ On your watchlist</button>
-      </form>
-    {% else %}
-      <form method="post" action="{% url 'monitoring:watchlist_add' asset.symbol %}">
-        {% csrf_token %}
-        <button
-          type="submit"
-          class="mv-wl-btn"
-          style="margin-top:8px;border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);"
-        >
-          ☆ Add to watchlist
-        </button>
-      </form>
-    {% endif %}
-  </div>
+      <div class="mv-ad-mini">
+        <div class="mv-ad-mini-label">3-day move</div>
+        <div class="mv-ad-mini-value {% if pct_move is not None and pct_move >= 0 %}mv-up{% elif pct_move is not None %}mv-down{% endif %}">
+          {% if pct_move is not None %}
+            {% if pct_move >= 0 %}+{% endif %}{{ pct_move|floatformat:2 }}%
+          {% else %}
+            —
+          {% endif %}
+        </div>
+        <div class="mv-ad-mini-sub">Short-term move used for monitoring context.</div>
+      </div>
+
+      <div class="mv-ad-mini">
+        <div class="mv-ad-mini-label">Status</div>
+        <div class="mv-ad-mini-value">
+          {% if has_elevated_signal %}
+            Elevated
+          {% elif signal_history %}
+            Active review
+          {% else %}
+            Quiet
+          {% endif %}
+        </div>
+        <div class="mv-ad-mini-sub">
+          {% if has_elevated_signal %}
+            Asset currently has at least one elevated monitoring signal.
+          {% else %}
+            Use alerts and watchlist state to keep this asset visible.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mv-card mv-ad-context-card">
+    <div class="mv-ad-context-title">Monitoring context</div>
+
+    <div class="mv-ad-context-copy">
+      Use this page to inspect one asset in more detail before routing it into deeper planning. It brings together price history, recent signal behaviour, watchlist state, and asset-specific alerts in one surface.
+    </div>
+
+    <div class="mv-ad-context-list">
+      <div>• Review recent stored OHLC movement and short-term price direction.</div>
+      <div>• Check whether signals are informational, watchlist-level, or elevated.</div>
+      <div>• Use alerts to monitor exact threshold conditions alongside signal logic.</div>
+      <div>• Route elevated conditions into RiskWise for deeper scenario planning.</div>
+    </div>
+
+    <div class="mv-ad-actions">
+      {% if has_elevated_signal %}
+        <a href="#" class="mv-btn-solid" style="min-width:220px;">
+          Investigate in RiskWise
+        </a>
+      {% else %}
+        <a href="{% url 'monitoring:signals' %}" class="mv-btn" style="min-width:220px;border-color:#ffcc00;color:#ffcc00;">
+          View all signals
+        </a>
+      {% endif %}
+
+      <a href="{% url 'monitoring:create_alert' %}" class="mv-btn" style="min-width:220px;">
+        Create asset alert
+      </a>
+    </div>
+  </section>
 </div>
 
-<div class="mv-chart-section">
+<section class="mv-card mv-ad-chart-wrap">
   <div class="mv-chart-hd">
     <span class="mv-chart-title">Price History — {{ asset.symbol }}</span>
     <div class="mv-period-tabs">
@@ -71,64 +345,64 @@
     </div>
   </div>
 
-  <div id="asset-chart" style="height:150px;display:flex;align-items:flex-end;gap:2px;padding:4px 0;">
-    {% if chart_points %}
-      {% for point in chart_points %}
-      <div
-        title="{{ point.tooltip }}"
-        style="
-          flex:1;
-          height:{{ point.height_pct }}%;
-          background:{% if point.is_latest %}#0d9488{% else %}rgba(13,148,136,0.30){% endif %};
-          border-radius:2px 2px 0 0;
-          min-width:6px;
-        "
-      ></div>
-      {% endfor %}
-    {% else %}
-      <div class="mv-empty" style="width:100%;">No OHLC data available for this asset.</div>
-    {% endif %}
-  </div>
-
   {% if chart_points %}
-  <div style="display:flex;justify-content:space-between;margin-top:4px;">
-    <span style="font-size:9px;color:rgba(255,255,255,0.2);">{{ chart_start_label }}</span>
-    <span style="font-size:9px;color:rgba(255,255,255,0.2);">{{ chart_end_label }}</span>
-  </div>
-  {% endif %}
-</div>
-
-<div class="mv-two-col-equal">
-
-  <div class="mv-card">
-    <div class="mv-card-hd">
-      <span class="mv-card-title">Signal History</span>
-      <span style="font-size:10px;color:rgba(255,255,255,0.25);">{{ signal_history|length }} signal{{ signal_history|pluralize }}</span>
+    <div id="asset-chart" class="mv-ad-chart-box">
+      {% for point in chart_points %}
+        <div
+          class="mv-ad-bar {% if point.is_latest %}latest{% endif %}"
+          title="{{ point.tooltip }}"
+          style="height:{{ point.height_pct }}%;"
+        ></div>
+      {% endfor %}
     </div>
+
+    <div class="mv-ad-chart-foot">
+      <span>{{ chart_start_label }}</span>
+      <span>{{ chart_end_label }}</span>
+    </div>
+  {% else %}
+    <div class="mv-ad-empty">
+      <div class="mv-ad-empty-title">No OHLC data available for this asset.</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.42);">
+        Load or seed monitoring data to populate the chart surface.
+      </div>
+    </div>
+  {% endif %}
+</section>
+
+<div class="mv-ad-main">
+  <section class="mv-card">
+    <div class="mv-ad-card-title">Signal History</div>
 
     {% if signal_history %}
       {% for sig in signal_history %}
       <div class="mv-detail-sig-row">
-        <span class="mv-chip
-          {% if sig.severity == 'ELEVATED' %}elevated
-          {% elif sig.severity == 'WATCHLIST' %}watchlist
-          {% else %}info{% endif %}">
+        <span class="mv-chip {% if sig.severity == 'ELEVATED' %}elevated{% elif sig.severity == 'WATCHLIST' %}watchlist{% else %}info{% endif %}">
           {{ sig.severity }}
         </span>
-        <span class="mv-sig-type-badge">{{ sig.get_signal_type_display|truncatechars:16 }}</span>
-        <span class="mv-sig-detail-msg">{{ sig.details|default:sig.title|truncatechars:64 }}</span>
-        {% if sig.metric_value or sig.metric_value == 0 %}
+
+        <span class="mv-sig-type-badge">{{ sig.get_signal_type_display|truncatechars:18 }}</span>
+
+        <span class="mv-sig-detail-msg">{{ sig.details|default:sig.title|truncatechars:72 }}</span>
+
+        {% if sig.metric_value is not None %}
           <span class="mv-sig-metric">{{ sig.metric_value|floatformat:2 }}</span>
         {% endif %}
+
         <span class="mv-sig-ts">{{ sig.signal_timestamp|timesince }} ago</span>
       </div>
       {% endfor %}
     {% else %}
-      <div class="mv-empty" style="padding:20px;">No signals generated for this asset yet.</div>
+      <div class="mv-ad-empty">
+        <div class="mv-ad-empty-title">No signals generated for this asset yet.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.42);">
+          Once monitoring logic detects movement, signals will appear here.
+        </div>
+      </div>
     {% endif %}
-  </div>
+  </section>
 
-  <div class="mv-card">
+  <section class="mv-card">
     <div class="mv-card-hd">
       <span class="mv-card-title">Active Alerts</span>
       <a href="{% url 'monitoring:create_alert' %}" class="mv-card-link">+ New →</a>
@@ -138,52 +412,62 @@
       {% for alert in asset_alerts %}
       <div class="mv-alert-item">
         <div class="mv-ai-row">
-          <span class="mv-ai-label">Price {{ alert.direction }} ${{ alert.target_price|floatformat:2 }}</span>
+          <span class="mv-ai-label">
+            Price {{ alert.direction }} ${{ alert.target_price|floatformat:2 }}
+          </span>
+
           <span class="mv-chip {% if alert.is_triggered %}triggered{% else %}active{% endif %}">
             {% if alert.is_triggered %}Triggered{% else %}Active{% endif %}
           </span>
         </div>
 
         {% if latest_snapshot and not alert.is_triggered %}
-          <div class="mv-ai-detail">Current: ${{ latest_snapshot.price|floatformat:2 }}</div>
+          <div class="mv-ai-detail">
+            Current: ${{ latest_snapshot.price|floatformat:2 }}
+          </div>
         {% elif alert.is_triggered %}
-          <div class="mv-ai-detail">Triggered {{ alert.created_at|timesince }} ago</div>
+          <div class="mv-ai-detail">
+            Triggered {{ alert.created_at|timesince }} ago
+          </div>
         {% endif %}
       </div>
       {% endfor %}
     {% else %}
-      <div class="mv-empty" style="padding:20px;">
-        No alerts set for {{ asset.symbol }}.
-        <div style="margin-top:8px;">
-          <a href="{% url 'monitoring:create_alert' %}" class="mv-btn primary">Create alert →</a>
-        </div>
+      <div class="mv-ad-empty">
+        <div class="mv-ad-empty-title">No alerts set for {{ asset.symbol }}.</div>
+        <a href="{% url 'monitoring:create_alert' %}" class="mv-btn primary">
+          Create alert →
+        </a>
       </div>
     {% endif %}
-  </div>
-
+  </section>
 </div>
 
 {% if has_elevated_signal %}
-<div class="mv-cta-primary">
+<div class="mv-cta-primary" style="margin-top:14px;">
   <div>
     <div class="mv-cta-eye">RiskWise Planner — FinTech Suite</div>
     <div class="mv-cta-title">Investigate {{ asset.symbol }} in RiskWise Planner</div>
     <div class="mv-cta-sub">
-      {{ asset.symbol }} has an ELEVATED signal. Model scenarios, stress-test risk, and plan before entering.
+      {{ asset.symbol }} has an elevated signal. Model scenarios, stress-test risk, and plan before entering.
     </div>
   </div>
-  <a href="#" class="mv-btn primary">Investigate in RiskWise →</a>
+  <a href="#" class="mv-btn-solid">Investigate in RiskWise →</a>
 </div>
 {% else %}
-<div class="mv-footer-cta">
+<div class="mv-footer-cta" style="margin-top:14px;">
   <div class="mv-fc-left">
     <div class="mv-fc-eye">FinTech Suite</div>
     <div class="mv-fc-txt">
-      When {{ asset.symbol }} reaches ELEVATED status, route it into RiskWise Planner for scenario modelling.
+      When {{ asset.symbol }} reaches elevated status, route it into RiskWise Planner for scenario modelling.
     </div>
   </div>
   <a href="{% url 'monitoring:signals' %}" class="mv-btn">View all signals →</a>
 </div>
 {% endif %}
+
+<div class="mv-ad-back">
+  <a href="{% url 'monitoring:asset_list' %}">← Back to assets</a>
+</div>
 
 {% endblock %}
