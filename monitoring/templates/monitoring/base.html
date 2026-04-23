@@ -8,11 +8,11 @@
   <meta name="theme-color" content="#080d19">
   <title>{% block title %}MarketVista{% endblock %} — MarketVista Dashboard</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app-shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
 
-  <link rel="stylesheet" href="{% static 'css/premium_shell.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -170,7 +170,11 @@
             {% if freshness_signal %}
               {{ freshness_signal.label }}
               {% if freshness_signal.delay_minutes is not None %}
-                · {{ freshness_signal.delay_minutes }} min ago
+                {% if freshness_signal.delay_minutes <= 0 %}
+                  · Just now
+                {% else %}
+                  · {{ freshness_signal.delay_minutes }} min ago
+                {% endif %}
               {% endif %}
             {% else %}
               Updated now

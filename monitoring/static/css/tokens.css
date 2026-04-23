@@ -1,0 +1,89 @@
+:root {
+  --mv-font-sans: 'DM Sans', sans-serif;
+
+  --mv-bg: #080d19;
+  --mv-bg-soft: #0a0f1e;
+  --mv-bg-elevated: #0d1426;
+  --mv-surface: rgba(255, 255, 255, 0.03);
+  --mv-surface-soft: rgba(255, 255, 255, 0.02);
+  --mv-surface-strong: rgba(255, 255, 255, 0.05);
+  --mv-surface-glass: rgba(10, 18, 34, 0.82);
+
+  --mv-border: rgba(255, 255, 255, 0.08);
+  --mv-border-soft: rgba(255, 255, 255, 0.05);
+  --mv-border-strong: rgba(255, 255, 255, 0.14);
+  --mv-border-accent: rgba(13, 148, 136, 0.34);
+
+  --mv-text: #e2e8f0;
+  --mv-text-strong: #ffffff;
+  --mv-text-soft: rgba(255, 255, 255, 0.60);
+  --mv-text-muted: rgba(255, 255, 255, 0.35);
+  --mv-text-faint: rgba(255, 255, 255, 0.25);
+
+  --mv-accent-primary: #0d9488;
+  --mv-accent-secondary: #06b6d4;
+  --mv-accent-glow: rgba(13, 148, 136, 0.25);
+  --mv-accent-gradient: linear-gradient(135deg, #0d9488, #06b6d4);
+
+  --mv-success: #10b981;
+  --mv-warning: #f59e0b;
+  --mv-elevated: #f97316;
+  --mv-danger: #ef4444;
+  --mv-info: rgba(255, 255, 255, 0.40);
+
+  --mv-blue-legacy: #2563eb;
+  --mv-purple-legacy: #7c3aed;
+
+  --mv-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.22);
+  --mv-shadow-md: 0 14px 36px rgba(0, 0, 0, 0.26);
+  --mv-shadow-lg: 0 28px 64px rgba(0, 0, 0, 0.34);
+  --mv-shadow-glow: 0 0 28px rgba(13, 148, 136, 0.18);
+
+  --mv-radius-xs: 7px;
+  --mv-radius-sm: 8px;
+  --mv-radius-md: 10px;
+  --mv-radius-lg: 14px;
+  --mv-radius-xl: 20px;
+
+  --mv-space-1: 4px;
+  --mv-space-2: 8px;
+  --mv-space-3: 10px;
+  --mv-space-4: 12px;
+  --mv-space-5: 14px;
+  --mv-space-6: 16px;
+  --mv-space-7: 18px;
+  --mv-space-8: 20px;
+  --mv-space-9: 24px;
+
+  --mv-sidebar-width: 196px;
+  --mv-topbar-height: 60px;
+
+  --mv-transition-fast: 0.12s ease;
+  --mv-transition: 0.18s ease;
+  --mv-transition-slow: 0.28s ease;
+
+  --mv-z-mobile-toggle: 1200;
+  --mv-z-sidebar: 1100;
+  --mv-z-overlay: 1090;
+}
+
+@keyframes mv-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes mv-shimmer {
+  0% { background-position: -320px 0; }
+  100% { background-position: 320px 0; }
+}
+
+@keyframes mv-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

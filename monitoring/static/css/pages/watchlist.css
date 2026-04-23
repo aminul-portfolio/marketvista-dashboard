@@ -1,0 +1,79 @@
+.mv-watchlist-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mv-watchlist-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mv-watchlist-summary .mv-sum-val.elevated {
+  color: var(--mv-elevated);
+}
+
+.mv-watchlist-summary .mv-sum-val.watchlist {
+  color: var(--mv-warning);
+}
+
+.mv-watchlist-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--mv-radius-md);
+}
+
+.mv-watchlist-added {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.mv-watchlist-no-results {
+  padding: 16px 18px;
+  border-radius: 10px;
+  border: 0.5px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.mv-watchlist-empty {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.mv-watchlist-empty-title {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.76);
+  margin-bottom: 10px;
+}
+
+.mv-watchlist-note {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.mv-wl-row[data-priority="elevated"] {
+  background: rgba(249, 115, 22, 0.03);
+}
+
+.mv-wl-row[data-priority="watchlist"] {
+  background: rgba(245, 158, 11, 0.03);
+}
+
+.mv-sig-badge {
+  min-width: 96px;
+}
+
+.mv-export-row {
+  margin-top: 2px;
+}
+
+@media (max-width: 1080px) {
+  .mv-watchlist-summary {
+    grid-template-columns: 1fr;
+  }
+}

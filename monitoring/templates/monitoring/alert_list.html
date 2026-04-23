@@ -1,10 +1,13 @@
 {% extends "monitoring/base.html" %}
+{% load static %}
 
 {% block title %}Alerts{% endblock %}
-
 {% block page_title %}My Alerts{% endblock %}
-
 {% block breadcrumb %}Command Centre › Alerts{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/alerts.css' %}">
+{% endblock %}
 
 {% block topbar_right %}
   <span class="mv-freshness">{{ alerts|length }} total alert{{ alerts|length|pluralize }}</span>
@@ -20,389 +23,154 @@
 </div>
 {% endblock %}
 
-{% block extra_head %}
-<style>
-  .mv-al-hero {
-    display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 14px;
-  }
-
-  .mv-al-eyebrow {
-    font-size: 12px;
-    color: rgba(255,255,255,0.38);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 12px;
-  }
-
-  .mv-al-title {
-    margin: 0 0 14px;
-    font-size: 52px;
-    line-height: 0.98;
-    font-weight: 700;
-    color: #e2e8f0;
-  }
-
-  .mv-al-subtitle {
-    margin: 0 0 18px;
-    max-width: 820px;
-    font-size: 18px;
-    line-height: 1.55;
-    color: rgba(255,255,255,0.88);
-  }
-
-  .mv-al-chip-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 18px;
-    font-size: 14px;
-    color: rgba(255,255,255,0.8);
-  }
-
-  .mv-al-summary-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .mv-al-summary-grid .mv-sum-card {
-    padding: 12px;
-  }
-
-  .mv-al-summary-grid .mv-sum-val {
-    font-size: 20px;
-  }
-
-  .mv-al-main {
-    display: grid;
-    grid-template-columns: 1.08fr 0.92fr;
-    gap: 14px;
-    margin-top: 14px;
-  }
-
-  .mv-al-registry {
-    min-width: 0;
-  }
-
-  .mv-al-side {
-    min-width: 0;
-  }
-
-  .mv-al-card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 18px;
-  }
-
-  .mv-al-card-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.38);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-  }
-
-  .mv-al-card-meta {
-    font-size: 12px;
-    color: #0d9488;
-  }
-
-  .mv-al-row {
-    display: grid;
-    grid-template-columns: 1.2fr 0.95fr 0.75fr 0.75fr;
-    gap: 10px;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 0.5px solid rgba(255,255,255,0.05);
-  }
-
-  .mv-al-row:last-child {
-    border-bottom: none;
-  }
-
-  .mv-al-row-head {
-    display: grid;
-    grid-template-columns: 1.2fr 0.95fr 0.75fr 0.75fr;
-    gap: 10px;
-    padding-bottom: 10px;
-    margin-bottom: 4px;
-    border-bottom: 0.5px solid rgba(255,255,255,0.06);
-    font-size: 10px;
-    color: rgba(255,255,255,0.28);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    font-weight: 600;
-  }
-
-  .mv-al-asset {
-    min-width: 0;
-  }
-
-  .mv-al-asset-main {
-    font-size: 14px;
-    font-weight: 600;
-    color: #e2e8f0;
-  }
-
-  .mv-al-asset-sub {
-    margin-top: 3px;
-    font-size: 12px;
-    color: rgba(255,255,255,0.36);
-  }
-
-  .mv-al-direction {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: rgba(255,255,255,0.82);
-  }
-
-  .mv-al-direction .mv-chip {
-    flex-shrink: 0;
-  }
-
-  .mv-al-target {
-    font-size: 14px;
-    font-weight: 600;
-    color: #e2e8f0;
-  }
-
-  .mv-al-created {
-    font-size: 12px;
-    color: rgba(255,255,255,0.42);
-    text-align: right;
-  }
-
-  .mv-al-empty {
-    padding: 38px 20px;
-    text-align: center;
-  }
-
-  .mv-al-empty-icon {
-    font-size: 40px;
-    opacity: 0.16;
-    margin-bottom: 12px;
-  }
-
-  .mv-al-empty-title {
-    font-size: 18px;
-    color: rgba(255,255,255,0.76);
-    margin-bottom: 18px;
-  }
-
-  .mv-al-side-block {
-    margin-bottom: 14px;
-  }
-
-  .mv-al-side-block:last-child {
-    margin-bottom: 0;
-  }
-
-  .mv-al-list {
-    display: grid;
-    gap: 10px;
-    font-size: 15px;
-    line-height: 1.55;
-    color: rgba(255,255,255,0.84);
-  }
-
-  .mv-al-actions {
-    display: grid;
-    gap: 12px;
-  }
-
-  .mv-al-actions .mv-btn {
-    min-height: 48px;
-    justify-content: center;
-    font-size: 14px;
-  }
-
-  .mv-al-actions .mv-btn-solid {
-    min-height: 48px;
-    justify-content: center;
-  }
-
-  @media (max-width: 1100px) {
-    .mv-al-hero,
-    .mv-al-main {
-      grid-template-columns: 1fr;
-    }
-
-    .mv-al-title {
-      font-size: 42px;
-    }
-  }
-
-  @media (max-width: 760px) {
-    .mv-al-summary-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .mv-al-row-head {
-      display: none;
-    }
-
-    .mv-al-row {
-      grid-template-columns: 1fr;
-      gap: 8px;
-      padding: 14px 0;
-    }
-
-    .mv-al-created {
-      text-align: left;
-    }
-
-    .mv-al-title {
-      font-size: 34px;
-    }
-  }
-</style>
-{% endblock %}
-
 {% block page_content %}
+<div class="mv-alerts-page">
 
-<div class="mv-al-hero">
-  <section class="mv-card">
-    <div class="mv-al-eyebrow">User alert review surface</div>
+  <div class="mv-al-hero">
+    <section class="mv-card">
+      <div class="mv-al-eyebrow">User alert review surface</div>
 
-    <h1 class="mv-al-title">My Alerts</h1>
+      <h1 class="mv-al-title">My Alerts</h1>
 
-    <p class="mv-al-subtitle">
-      Review your user-defined price alerts and keep monitoring attention aligned with the assets and levels that matter most.
-    </p>
+      <p class="mv-al-subtitle">
+        Review your user-defined price alerts and keep monitoring attention aligned with the assets and levels that matter most.
+      </p>
 
-    <div class="mv-al-chip-row">
-      <span>◉ {{ alerts|length }} total alerts</span>
-      <span>◉ Monitoring-aware workflow</span>
-      <span>◉ Pairs with dashboard signals</span>
-    </div>
-  </section>
-
-  <section class="mv-card">
-    <div class="mv-al-card-head" style="margin-bottom:14px;">
-      <span class="mv-al-card-title">Alert summary</span>
-    </div>
-
-    <div class="mv-al-summary-grid">
-      <div class="mv-sum-card">
-        <div class="mv-sum-eye">Total Alerts</div>
-        <div class="mv-sum-val">{{ alerts|length }}</div>
-      </div>
-
-      <div class="mv-sum-card">
-        <div class="mv-sum-eye">Triggered</div>
-        <div class="mv-sum-val" style="color:#ef4444;">{{ triggered_alerts_count }}</div>
-      </div>
-
-      <div class="mv-sum-card">
-        <div class="mv-sum-eye">Pending</div>
-        <div class="mv-sum-val" style="color:#f59e0b;">{{ active_alerts_count }}</div>
-      </div>
-
-      <div class="mv-sum-card">
-        <div class="mv-sum-eye">Assets Covered</div>
-        <div class="mv-sum-val">{{ alerts|length }}</div>
-      </div>
-    </div>
-
-    <div style="margin-top:16px;">
-      <a href="{% url 'monitoring:create_alert' %}" class="mv-btn-solid" style="width:100%;">
-        Create New Alert
-      </a>
-    </div>
-  </section>
-</div>
-
-<div class="mv-al-main">
-  <section class="mv-card mv-al-registry">
-    <div class="mv-al-card-head">
-      <span class="mv-al-card-title">Alert Registry</span>
-      <span class="mv-al-card-meta">{{ alerts|length }} row{{ alerts|length|pluralize }}</span>
-    </div>
-
-    {% if alerts %}
-      <div class="mv-al-row-head">
-        <div>Asset</div>
-        <div>Direction</div>
-        <div>Target</div>
-        <div>Status / Created</div>
-      </div>
-
-      {% for alert in alerts %}
-      <div class="mv-al-row">
-        <div class="mv-al-asset">
-          <div class="mv-al-asset-main">{{ alert.asset.symbol }}</div>
-          <div class="mv-al-asset-sub">{{ alert.asset.name|default:alert.asset.symbol }}</div>
-        </div>
-
-        <div class="mv-al-direction">
-          {% if alert.direction == "above" %}
-            <span class="mv-chip info">ABOVE</span>
-          {% else %}
-            <span class="mv-chip watchlist">BELOW</span>
-          {% endif %}
-          <span>{{ alert.direction|upper }}</span>
-        </div>
-
-        <div class="mv-al-target">{{ alert.target_price }}</div>
-
-        <div class="mv-al-created">
-          {% if alert.is_triggered %}
-            <div style="margin-bottom:4px;">
-              <span class="mv-chip triggered">TRIGGERED</span>
-            </div>
-          {% else %}
-            <div style="margin-bottom:4px;">
-              <span class="mv-chip info">PENDING</span>
-            </div>
-          {% endif %}
-          <div>{{ alert.created_at|date:"Y-m-d H:i" }}</div>
-        </div>
-      </div>
-      {% endfor %}
-    {% else %}
-      <div class="mv-al-empty">
-        <div class="mv-al-empty-icon">◌</div>
-        <div class="mv-al-empty-title">No alerts have been created yet.</div>
-        <a href="{% url 'monitoring:create_alert' %}" class="mv-btn-solid">
-          Create your first alert
-        </a>
-      </div>
-    {% endif %}
-  </section>
-
-  <div class="mv-al-side">
-    <section class="mv-card mv-al-side-block">
-      <div class="mv-al-card-title" style="margin-bottom:14px;">How alerts fit the workflow</div>
-      <div class="mv-al-list">
-        <div>• Alerts monitor specific threshold conditions on chosen assets.</div>
-        <div>• Signals explain broader market behaviour and elevated conditions.</div>
-        <div>• Watchlist items keep high-priority assets visible at all times.</div>
-        <div>• Together these surfaces make MarketVista an analyst-facing monitoring layer.</div>
+      <div class="mv-al-chip-row">
+        <span>◉ {{ alerts|length }} total alerts</span>
+        <span>◉ Monitoring-aware workflow</span>
+        <span>◉ Pairs with dashboard signals</span>
       </div>
     </section>
 
-    <section class="mv-card mv-al-side-block">
-      <div class="mv-al-card-title" style="margin-bottom:14px;">Suggested next moves</div>
-      <div class="mv-al-actions">
-        <a href="{% url 'monitoring:dashboard' %}" class="mv-btn" style="border-color:#00c7ff;color:#00c7ff;">
-          Return to Dashboard
-        </a>
+    <section class="mv-card">
+      <div class="mv-al-card-head mv-al-summary-head">
+        <span class="mv-al-card-title">Alert summary</span>
+      </div>
 
-        <a href="{% url 'monitoring:signals' %}" class="mv-btn" style="border-color:#ffcc00;color:#ffcc00;">
-          Review Signals
-        </a>
+      <div class="mv-al-summary-grid">
+        <div class="mv-sum-card">
+          <div class="mv-sum-eye">Total Alerts</div>
+          <div class="mv-sum-val">{{ alerts|length }}</div>
+        </div>
 
-        <a href="{% url 'monitoring:create_alert' %}" class="mv-btn" style="border-color:#ffffff;color:#ffffff;">
-          Create Another Alert
+        <div class="mv-sum-card">
+          <div class="mv-sum-eye">Triggered</div>
+          <div class="mv-sum-val mv-al-danger">{{ triggered_alerts_count }}</div>
+        </div>
+
+        <div class="mv-sum-card">
+          <div class="mv-sum-eye">Pending</div>
+          <div class="mv-sum-val mv-al-warning">{{ active_alerts_count }}</div>
+        </div>
+
+        <div class="mv-sum-card">
+          <div class="mv-sum-eye">Assets Covered</div>
+          <div class="mv-sum-val">{{ alerts|length }}</div>
+        </div>
+      </div>
+
+      <div class="mv-al-primary-cta">
+        <a href="{% url 'monitoring:create_alert' %}" class="mv-btn-solid mv-al-full-btn">
+          Create New Alert
         </a>
       </div>
     </section>
   </div>
-</div>
 
+  <div class="mv-al-main">
+    <section class="mv-card mv-al-registry">
+      <div class="mv-al-card-head">
+        <span class="mv-al-card-title">Alert Registry</span>
+        <span class="mv-al-card-meta">{{ alerts|length }} row{{ alerts|length|pluralize }}</span>
+      </div>
+
+      {% if alerts %}
+        <div class="mv-al-row-head">
+          <div>Asset</div>
+          <div>Direction</div>
+          <div>Target</div>
+          <div>Status / Created</div>
+        </div>
+
+        {% for alert in alerts %}
+        <div class="mv-al-row" data-status="{% if alert.is_triggered %}triggered{% else %}pending{% endif %}">
+          <div class="mv-al-asset">
+            <div class="mv-al-asset-main">{{ alert.asset.symbol }}</div>
+            <div class="mv-al-asset-sub">{{ alert.asset.name|default:alert.asset.symbol }}</div>
+          </div>
+
+          <div class="mv-al-direction">
+            {% if alert.direction == "above" %}
+              <span class="mv-chip info">ABOVE</span>
+            {% else %}
+              <span class="mv-chip watchlist">BELOW</span>
+            {% endif %}
+            <span>{{ alert.direction|upper }}</span>
+          </div>
+
+          <div class="mv-al-target">{{ alert.target_price|floatformat:2 }}</div>
+
+          <div class="mv-al-created">
+            {% if alert.is_triggered %}
+              <div class="mv-al-status-row">
+                <span class="mv-chip triggered">TRIGGERED</span>
+              </div>
+            {% else %}
+              <div class="mv-al-status-row">
+                <span class="mv-chip info">PENDING</span>
+              </div>
+            {% endif %}
+            <div data-relative-time="{{ alert.created_at|date:'c' }}">
+              {{ alert.created_at|timesince }} ago
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="mv-al-empty">
+          <div class="mv-al-empty-icon">◌</div>
+          <div class="mv-al-empty-title">No alerts have been created yet.</div>
+          <a href="{% url 'monitoring:create_alert' %}" class="mv-btn-solid">
+            Create your first alert
+          </a>
+        </div>
+      {% endif %}
+    </section>
+
+    <div class="mv-al-side">
+      <section class="mv-card mv-al-side-block">
+        <div class="mv-al-card-title mv-al-side-title">How alerts fit the workflow</div>
+        <div class="mv-al-list">
+          <div>• Alerts monitor specific threshold conditions on chosen assets.</div>
+          <div>• Signals explain broader market behaviour and elevated conditions.</div>
+          <div>• Watchlist items keep high-priority assets visible at all times.</div>
+          <div>• Together these surfaces make MarketVista an analyst-facing monitoring layer.</div>
+        </div>
+      </section>
+
+      <section class="mv-card mv-al-side-block">
+        <div class="mv-al-card-title mv-al-side-title">Suggested next moves</div>
+        <div class="mv-al-actions">
+          <a href="{% url 'monitoring:dashboard' %}" class="mv-btn mv-al-btn-cyan">
+            Return to Dashboard
+          </a>
+
+          <a href="{% url 'monitoring:signals' %}" class="mv-btn mv-al-btn-amber">
+            Review Signals
+          </a>
+
+          <a href="{% url 'monitoring:create_alert' %}" class="mv-btn mv-al-btn-light">
+            Create Another Alert
+          </a>
+        </div>
+      </section>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/alerts.js' %}"></script>
 {% endblock %}

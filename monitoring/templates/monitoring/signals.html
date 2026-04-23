@@ -2,10 +2,12 @@
 {% load static %}
 
 {% block title %}Signals{% endblock %}
-
 {% block page_title %}Signals &amp; Alerts{% endblock %}
-
 {% block breadcrumb %}Command Centre › Signals{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/signals.css' %}">
+{% endblock %}
 
 {% block topbar_right %}
   <span class="mv-freshness">{{ total_signals_count }} signal{{ total_signals_count|pluralize }} active</span>
@@ -25,113 +27,138 @@
 {% endblock %}
 
 {% block page_content %}
+<div class="mv-signals-page">
 
-<div class="mv-stat-row">
-  <div class="mv-stat-card">
-    <div class="mv-stat-val elevated">{{ elevated_count }}</div>
-    <div class="mv-stat-lbl">Elevated</div>
+  <section class="mv-signals-summary">
+    <div class="mv-stat-card">
+      <div class="mv-stat-val elevated">{{ elevated_count }}</div>
+      <div class="mv-stat-lbl">Elevated</div>
+    </div>
+
+    <div class="mv-stat-card">
+      <div class="mv-stat-val watchlist">{{ watchlist_count_signals }}</div>
+      <div class="mv-stat-lbl">Watchlist</div>
+    </div>
+
+    <div class="mv-stat-card">
+      <div class="mv-stat-val info">{{ info_count }}</div>
+      <div class="mv-stat-lbl">Info</div>
+    </div>
+  </section>
+
+  <section class="mv-filter-row">
+    <a href="?severity=" class="mv-fil {% if not current_severity %}active{% endif %}">All signals</a>
+    <a href="?severity=ELEVATED" class="mv-fil {% if current_severity == 'ELEVATED' %}active{% endif %}">ELEVATED</a>
+    <a href="?severity=WATCHLIST" class="mv-fil {% if current_severity == 'WATCHLIST' %}active{% endif %}">WATCHLIST</a>
+    <a href="?severity=INFO" class="mv-fil {% if current_severity == 'INFO' %}active{% endif %}">INFO</a>
+  </section>
+
+  {% if elevated_count > 0 %}
+  <section class="mv-elevated-banner">
+    <div class="mv-eb-left">
+      <div class="mv-eb-icon">▲</div>
+      <span class="mv-eb-txt">
+        <span class="mv-eb-em">{{ elevated_count }} asset{{ elevated_count|pluralize }} with ELEVATED signals</span>
+        — ready for deeper risk planning
+      </span>
+    </div>
+    <a href="#" class="mv-btn primary">Investigate in RiskWise →</a>
+  </section>
+  {% endif %}
+
+  {% if elevated_signals %}
+  <section>
+    <div class="mv-section-hd">
+      <span class="mv-section-title">Elevated</span>
+    </div>
+
+    {% for signal in elevated_signals %}
+    <div class="mv-sig-card elevated" data-severity="elevated">
+      <span class="mv-chip elevated">ELEVATED</span>
+      <span class="mv-sc-sym">{{ signal.asset.symbol }}</span>
+      <span class="mv-sc-type">{{ signal.title|truncatechars:24 }}</span>
+      <span class="mv-sc-msg">{{ signal.details|default:signal.title }}</span>
+
+      {% if signal.metric_value or signal.metric_value == 0 %}
+        <span class="mv-sc-val">{{ signal.metric_value|floatformat:2 }}</span>
+      {% endif %}
+
+      <span class="mv-sc-time" data-relative-time="{{ signal.signal_timestamp|date:'c' }}">
+        {{ signal.signal_timestamp|timesince }} ago
+      </span>
+
+      <a href="{% url 'monitoring:asset_detail' signal.asset.symbol %}" class="mv-sc-link">View →</a>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if watchlist_signals %}
+  <section>
+    <div class="mv-section-hd">
+      <span class="mv-section-title">Watchlist</span>
+    </div>
+
+    {% for signal in watchlist_signals %}
+    <div class="mv-sig-card watchlist" data-severity="watchlist">
+      <span class="mv-chip watchlist">WATCHLIST</span>
+      <span class="mv-sc-sym">{{ signal.asset.symbol }}</span>
+      <span class="mv-sc-type">{{ signal.title|truncatechars:24 }}</span>
+      <span class="mv-sc-msg">{{ signal.details|default:signal.title }}</span>
+
+      {% if signal.metric_value or signal.metric_value == 0 %}
+        <span class="mv-sc-val">{{ signal.metric_value|floatformat:2 }}</span>
+      {% endif %}
+
+      <span class="mv-sc-time" data-relative-time="{{ signal.signal_timestamp|date:'c' }}">
+        {{ signal.signal_timestamp|timesince }} ago
+      </span>
+
+      <a href="{% url 'monitoring:asset_detail' signal.asset.symbol %}" class="mv-sc-link">View →</a>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if info_signals %}
+  <section>
+    <div class="mv-section-hd">
+      <span class="mv-section-title">Info</span>
+    </div>
+
+    {% for signal in info_signals %}
+    <div class="mv-sig-card info" data-severity="info">
+      <span class="mv-chip info">INFO</span>
+      <span class="mv-sc-sym">{{ signal.asset.symbol }}</span>
+      <span class="mv-sc-type">{{ signal.title|truncatechars:24 }}</span>
+      <span class="mv-sc-msg">{{ signal.details|default:signal.title }}</span>
+
+      {% if signal.metric_value or signal.metric_value == 0 %}
+        <span class="mv-sc-val">{{ signal.metric_value|floatformat:2 }}</span>
+      {% endif %}
+
+      <span class="mv-sc-time" data-relative-time="{{ signal.signal_timestamp|date:'c' }}">
+        {{ signal.signal_timestamp|timesince }} ago
+      </span>
+
+      <a href="{% url 'monitoring:asset_detail' signal.asset.symbol %}" class="mv-sc-link">View →</a>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if not elevated_signals and not watchlist_signals and not info_signals %}
+  <div class="mv-empty mv-signals-empty">
+    <div class="mv-signals-empty-title">No active signals found.</div>
+    <div class="mv-signals-empty-copy">
+      Load demo data or refresh monitoring inputs to generate signal context.
+    </div>
   </div>
-  <div class="mv-stat-card">
-    <div class="mv-stat-val watchlist">{{ watchlist_count_signals }}</div>
-    <div class="mv-stat-lbl">Watchlist</div>
-  </div>
-  <div class="mv-stat-card">
-    <div class="mv-stat-val info">{{ info_count }}</div>
-    <div class="mv-stat-lbl">Info</div>
-  </div>
+  {% endif %}
+
 </div>
+{% endblock %}
 
-<div class="mv-filter-row">
-  <a href="?severity=" class="mv-fil {% if not current_severity %}active{% endif %}">All signals</a>
-  <a href="?severity=ELEVATED" class="mv-fil {% if current_severity == 'ELEVATED' %}active{% endif %}">ELEVATED</a>
-  <a href="?severity=WATCHLIST" class="mv-fil {% if current_severity == 'WATCHLIST' %}active{% endif %}">WATCHLIST</a>
-  <a href="?severity=INFO" class="mv-fil {% if current_severity == 'INFO' %}active{% endif %}">INFO</a>
-</div>
-
-{% if elevated_count > 0 %}
-<div class="mv-elevated-banner">
-  <div class="mv-eb-left">
-    <div class="mv-eb-icon">▲</div>
-    <span class="mv-eb-txt">
-      <span class="mv-eb-em">{{ elevated_count }} asset{{ elevated_count|pluralize }} with ELEVATED signals</span>
-      — ready for deeper risk planning
-    </span>
-  </div>
-  <a href="#" class="mv-btn primary">Investigate in RiskWise →</a>
-</div>
-{% endif %}
-
-{% if elevated_signals %}
-<div>
-  <div class="mv-section-hd">
-    <span class="mv-section-title">Elevated</span>
-  </div>
-  {% for signal in elevated_signals %}
-  <div class="mv-sig-card elevated">
-    <span class="mv-chip elevated">ELEVATED</span>
-    <span class="mv-sc-sym">{{ signal.asset.symbol }}</span>
-    <span class="mv-sc-type">{{ signal.title|truncatechars:24 }}</span>
-    <span class="mv-sc-msg">{{ signal.details|default:signal.title }}</span>
-    {% if signal.metric_value or signal.metric_value == 0 %}
-      <span class="mv-sc-val">{{ signal.metric_value|floatformat:2 }}</span>
-    {% endif %}
-    <span class="mv-sc-time">{{ signal.signal_timestamp|timesince }} ago</span>
-    <a href="{% url 'monitoring:asset_detail' signal.asset.symbol %}" class="mv-sc-link">View →</a>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-
-{% if watchlist_signals %}
-<div>
-  <div class="mv-section-hd">
-    <span class="mv-section-title">Watchlist</span>
-  </div>
-  {% for signal in watchlist_signals %}
-  <div class="mv-sig-card watchlist">
-    <span class="mv-chip watchlist">WATCHLIST</span>
-    <span class="mv-sc-sym">{{ signal.asset.symbol }}</span>
-    <span class="mv-sc-type">{{ signal.title|truncatechars:24 }}</span>
-    <span class="mv-sc-msg">{{ signal.details|default:signal.title }}</span>
-    {% if signal.metric_value or signal.metric_value == 0 %}
-      <span class="mv-sc-val">{{ signal.metric_value|floatformat:2 }}</span>
-    {% endif %}
-    <span class="mv-sc-time">{{ signal.signal_timestamp|timesince }} ago</span>
-    <a href="{% url 'monitoring:asset_detail' signal.asset.symbol %}" class="mv-sc-link">View →</a>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-
-{% if info_signals %}
-<div>
-  <div class="mv-section-hd">
-    <span class="mv-section-title">Info</span>
-  </div>
-  {% for signal in info_signals %}
-  <div class="mv-sig-card info">
-    <span class="mv-chip info">INFO</span>
-    <span class="mv-sc-sym">{{ signal.asset.symbol }}</span>
-    <span class="mv-sc-type">{{ signal.title|truncatechars:24 }}</span>
-    <span class="mv-sc-msg">{{ signal.details|default:signal.title }}</span>
-    {% if signal.metric_value or signal.metric_value == 0 %}
-      <span class="mv-sc-val">{{ signal.metric_value|floatformat:2 }}</span>
-    {% endif %}
-    <span class="mv-sc-time">{{ signal.signal_timestamp|timesince }} ago</span>
-    <a href="{% url 'monitoring:asset_detail' signal.asset.symbol %}" class="mv-sc-link">View →</a>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-
-{% if not elevated_signals and not watchlist_signals and not info_signals %}
-<div class="mv-empty">
-  <div style="font-size:24px;margin-bottom:8px;opacity:0.3;">▲</div>
-  <div>No active signals found.</div>
-  <div style="margin-top:6px;font-size:11px;">
-    Load demo data or refresh monitoring inputs to generate signal context.
-  </div>
-</div>
-{% endif %}
-
+{% block extra_js %}
+<script src="{% static 'js/signals.js' %}"></script>
 {% endblock %}

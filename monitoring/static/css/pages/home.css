@@ -1,0 +1,252 @@
+.mv-home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mv-home-hero {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 14px;
+}
+
+.mv-home-eyebrow {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+
+.mv-home-title {
+  margin: 0 0 14px;
+  font-size: 52px;
+  line-height: 0.95;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.mv-home-subtitle {
+  margin: 0 0 18px;
+  max-width: 760px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.mv-home-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 18px;
+}
+
+.mv-home-mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mv-home-mini-card {
+  background: rgba(8, 16, 36, 0.45);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.mv-home-mini-title {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.mv-home-mini-copy {
+  font-size: 16px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.mv-home-cta-row {
+  margin-top: 16px;
+}
+
+.mv-home-full-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.mv-home-quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.mv-home-quick-card {
+  background: rgba(8, 16, 36, 0.45);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.mv-home-quick-card.full {
+  grid-column: 1 / -1;
+}
+
+.mv-home-quick-title {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.mv-home-quick-copy {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.mv-home-quick-card .mv-btn,
+.mv-home-quick-card .mv-btn-solid {
+  width: 100%;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.mv-home-meta-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr 0.9fr;
+  gap: 14px;
+}
+
+.mv-home-section-title {
+  margin-bottom: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.mv-home-body-copy {
+  font-size: 18px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.mv-home-list {
+  display: grid;
+  gap: 10px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.mv-home-suite-grid {
+  display: grid;
+  gap: 10px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mv-home-suite-grid span:first-child {
+  color: rgba(255, 255, 255, 0.55);
+  margin-right: 6px;
+}
+
+.mv-home-admin-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.mv-home-reviewer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(13, 148, 136, 0.08);
+  border: 0.5px solid rgba(13, 148, 136, 0.22);
+}
+
+.mv-home-reviewer-left {
+  min-width: 0;
+}
+
+.mv-home-reviewer-eye {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0d9488;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.mv-home-reviewer-copy {
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.mv-home-reviewer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.82);
+  white-space: nowrap;
+}
+
+.mv-home-btn-cyan {
+  border-color: #00c7ff;
+  color: #00c7ff;
+}
+
+.mv-home-btn-amber {
+  border-color: #ffcc00;
+  color: #ffcc00;
+}
+
+.mv-home-btn-light {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+@media (max-width: 1180px) {
+  .mv-home-hero,
+  .mv-home-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mv-home-title {
+    font-size: 44px;
+  }
+}
+
+@media (max-width: 760px) {
+  .mv-home-mini-grid,
+  .mv-home-quick-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mv-home-title {
+    font-size: 34px;
+  }
+
+  .mv-home-reviewer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mv-home-reviewer-tags {
+    white-space: normal;
+  }
+}

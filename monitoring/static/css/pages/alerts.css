@@ -1,0 +1,280 @@
+.mv-alerts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mv-al-hero {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 14px;
+}
+
+.mv-al-eyebrow {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+
+.mv-al-title {
+  margin: 0 0 14px;
+  font-size: 52px;
+  line-height: 0.98;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.mv-al-subtitle {
+  margin: 0 0 18px;
+  max-width: 820px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.mv-al-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.mv-al-summary-head {
+  margin-bottom: 14px;
+}
+
+.mv-al-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mv-al-summary-grid .mv-sum-card {
+  padding: 12px;
+}
+
+.mv-al-summary-grid .mv-sum-val {
+  font-size: 20px;
+}
+
+.mv-al-danger {
+  color: #ef4444;
+}
+
+.mv-al-warning {
+  color: #f59e0b;
+}
+
+.mv-al-primary-cta {
+  margin-top: 16px;
+}
+
+.mv-al-full-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.mv-al-main {
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: 14px;
+}
+
+.mv-al-registry,
+.mv-al-side {
+  min-width: 0;
+}
+
+.mv-al-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.mv-al-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.mv-al-card-meta {
+  font-size: 12px;
+  color: #0d9488;
+}
+
+.mv-al-row-head {
+  display: grid;
+  grid-template-columns: 1.2fr 0.95fr 0.75fr 0.75fr;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.28);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+
+.mv-al-row {
+  display: grid;
+  grid-template-columns: 1.2fr 0.95fr 0.75fr 0.75fr;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+}
+
+.mv-al-row:last-child {
+  border-bottom: none;
+}
+
+.mv-al-asset {
+  min-width: 0;
+}
+
+.mv-al-asset-main {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.mv-al-asset-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.36);
+}
+
+.mv-al-direction {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.mv-al-direction .mv-chip {
+  flex-shrink: 0;
+}
+
+.mv-al-target {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.mv-al-created {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.42);
+  text-align: right;
+}
+
+.mv-al-status-row {
+  margin-bottom: 4px;
+}
+
+.mv-al-empty {
+  padding: 38px 20px;
+  text-align: center;
+}
+
+.mv-al-empty-icon {
+  font-size: 40px;
+  opacity: 0.16;
+  margin-bottom: 12px;
+}
+
+.mv-al-empty-title {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.76);
+  margin-bottom: 18px;
+}
+
+.mv-al-side-block {
+  margin-bottom: 14px;
+}
+
+.mv-al-side-block:last-child {
+  margin-bottom: 0;
+}
+
+.mv-al-side-title {
+  margin-bottom: 14px;
+}
+
+.mv-al-list {
+  display: grid;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.mv-al-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.mv-al-actions .mv-btn,
+.mv-al-actions .mv-btn-solid {
+  min-height: 48px;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.mv-al-btn-cyan {
+  border-color: #00c7ff;
+  color: #00c7ff;
+}
+
+.mv-al-btn-amber {
+  border-color: #ffcc00;
+  color: #ffcc00;
+}
+
+.mv-al-btn-light {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+@media (max-width: 1100px) {
+  .mv-al-hero,
+  .mv-al-main {
+    grid-template-columns: 1fr;
+  }
+
+  .mv-al-title {
+    font-size: 42px;
+  }
+}
+
+@media (max-width: 760px) {
+  .mv-al-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mv-al-row-head {
+    display: none;
+  }
+
+  .mv-al-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 14px 0;
+  }
+
+  .mv-al-created {
+    text-align: left;
+  }
+
+  .mv-al-title {
+    font-size: 34px;
+  }
+}

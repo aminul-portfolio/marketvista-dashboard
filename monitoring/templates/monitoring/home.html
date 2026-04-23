@@ -1,14 +1,24 @@
 {% extends "monitoring/base.html" %}
+{% load static %}
 
 {% block title %}Home{% endblock %}
-
 {% block page_title %}MarketVista Home{% endblock %}
-
 {% block breadcrumb %}Command Centre › Home{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
+{% endblock %}
 
 {% block topbar_right %}
   {% if freshness_signal and freshness_signal.delay_minutes is not None %}
-    <span class="mv-freshness">{{ freshness_signal.label }} · {{ freshness_signal.delay_minutes }} min ago</span>
+    <span class="mv-freshness {% if freshness_signal.delay_minutes <= 5 %}is-fresh{% elif freshness_signal.delay_minutes <= 60 %}is-delayed{% else %}is-stale{% endif %}">
+      {{ freshness_signal.label }}
+      {% if freshness_signal.delay_minutes <= 0 %}
+        · Just now
+      {% else %}
+        · {{ freshness_signal.delay_minutes }} min ago
+      {% endif %}
+    </span>
   {% else %}
     <span class="mv-freshness">Monitoring-first landing surface</span>
   {% endif %}
@@ -24,382 +34,161 @@
 </div>
 {% endblock %}
 
-{% block extra_head %}
-<style>
-  .mv-home-hero {
-    display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 14px;
-  }
-
-  .mv-home-eyebrow {
-    font-size: 12px;
-    color: rgba(255,255,255,0.38);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 12px;
-  }
-
-  .mv-home-title {
-    margin: 0 0 14px;
-    font-size: 52px;
-    line-height: 0.95;
-    font-weight: 700;
-    color: #e2e8f0;
-  }
-
-  .mv-home-subtitle {
-    margin: 0 0 18px;
-    max-width: 760px;
-    font-size: 18px;
-    line-height: 1.55;
-    color: rgba(255,255,255,0.88);
-  }
-
-  .mv-home-chip-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 18px;
-    font-size: 14px;
-    color: rgba(255,255,255,0.8);
-    margin-bottom: 18px;
-  }
-
-  .mv-home-mini-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .mv-home-mini-card {
-    background: rgba(8,16,36,0.45);
-    border: 0.5px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-    padding: 14px;
-  }
-
-  .mv-home-mini-title {
-    margin-bottom: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.38);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-  }
-
-  .mv-home-mini-copy {
-    font-size: 16px;
-    line-height: 1.55;
-    color: rgba(255,255,255,0.86);
-  }
-
-  .mv-home-quick-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .mv-home-quick-card {
-    background: rgba(8,16,36,0.45);
-    border: 0.5px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-    padding: 16px;
-  }
-
-  .mv-home-quick-card.full {
-    grid-column: 1 / -1;
-  }
-
-  .mv-home-quick-title {
-    margin: 0 0 10px;
-    font-size: 16px;
-    font-weight: 700;
-    color: #e2e8f0;
-  }
-
-  .mv-home-quick-copy {
-    margin: 0 0 14px;
-    font-size: 15px;
-    line-height: 1.55;
-    color: rgba(255,255,255,0.84);
-  }
-
-  .mv-home-quick-card .mv-btn,
-  .mv-home-quick-card .mv-btn-solid {
-    width: 100%;
-    justify-content: center;
-    min-height: 44px;
-  }
-
-  .mv-home-meta-grid {
-    display: grid;
-    grid-template-columns: 1.1fr 0.9fr 0.9fr;
-    gap: 14px;
-    margin-top: 14px;
-  }
-
-  .mv-home-section-title {
-    margin-bottom: 14px;
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.38);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-  }
-
-  .mv-home-body-copy {
-    font-size: 18px;
-    line-height: 1.6;
-    color: rgba(255,255,255,0.88);
-  }
-
-  .mv-home-list {
-    display: grid;
-    gap: 10px;
-    font-size: 16px;
-    line-height: 1.6;
-    color: rgba(255,255,255,0.86);
-  }
-
-  .mv-home-suite-grid {
-    display: grid;
-    gap: 10px;
-    font-size: 17px;
-    line-height: 1.6;
-    color: rgba(255,255,255,0.9);
-  }
-
-  .mv-home-suite-grid span:first-child {
-    color: rgba(255,255,255,0.55);
-    margin-right: 6px;
-  }
-
-  .mv-home-reviewer {
-    margin-top: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    background: rgba(13,148,136,0.08);
-    border: 0.5px solid rgba(13,148,136,0.22);
-  }
-
-  .mv-home-reviewer-left {
-    min-width: 0;
-  }
-
-  .mv-home-reviewer-eye {
-    margin-bottom: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #0d9488;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-  }
-
-  .mv-home-reviewer-copy {
-    font-size: 15px;
-    line-height: 1.55;
-    color: rgba(255,255,255,0.86);
-  }
-
-  .mv-home-reviewer-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 18px;
-    font-size: 12px;
-    color: rgba(255,255,255,0.82);
-    white-space: nowrap;
-  }
-
-  @media (max-width: 1180px) {
-    .mv-home-hero,
-    .mv-home-meta-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .mv-home-title {
-      font-size: 44px;
-    }
-  }
-
-  @media (max-width: 760px) {
-    .mv-home-mini-grid,
-    .mv-home-quick-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .mv-home-title {
-      font-size: 34px;
-    }
-
-    .mv-home-reviewer {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .mv-home-reviewer-tags {
-      white-space: normal;
-    }
-  }
-</style>
-{% endblock %}
-
 {% block page_content %}
+<div class="mv-home-page">
 
-<div class="mv-home-hero">
-  <section class="mv-card">
-    <div class="mv-home-eyebrow">Monitoring-first landing surface</div>
+  <div class="mv-home-hero">
+    <section class="mv-card">
+      <div class="mv-home-eyebrow">Monitoring-first landing surface</div>
 
-    <h1 class="mv-home-title">MarketVista Dashboard</h1>
+      <h1 class="mv-home-title">MarketVista Dashboard</h1>
 
-    <p class="mv-home-subtitle">
-      MarketVista is the monitoring layer in your four-project fintech workflow. Review freshness, surface elevated signals, inspect watchlist assets, and route important conditions into deeper analysis.
-    </p>
+      <p class="mv-home-subtitle">
+        MarketVista is the monitoring layer in your four-project fintech workflow. Review freshness, surface elevated signals, inspect watchlist assets, and route important conditions into deeper analysis.
+      </p>
 
-    <div class="mv-home-chip-row">
-      <span>◉ Connected to your suite workflow</span>
-      <span>◉ Alert-aware monitoring</span>
-      <span>◉ OHLC-backed dashboard</span>
-    </div>
-
-    <div class="mv-home-mini-grid">
-      <div class="mv-home-mini-card">
-        <div class="mv-home-mini-title">Product role</div>
-        <div class="mv-home-mini-copy">
-          Monitoring + analyst visibility
-          <br><br>
-          Use MarketVista to identify what changed, what is elevated, what is delayed, and which assets deserve deeper review.
-        </div>
+      <div class="mv-home-chip-row">
+        <span>◉ Connected to your suite workflow</span>
+        <span>◉ Alert-aware monitoring</span>
+        <span>◉ OHLC-backed dashboard</span>
       </div>
 
-      <div class="mv-home-mini-card">
-        <div class="mv-home-mini-title">What this app answers</div>
-        <div class="mv-home-mini-copy">
-          What changed? <strong>Signals</strong><br>
-          Can I trust the data? <strong>Freshness</strong><br>
-          What needs attention? <strong>Watchlist</strong><br>
-          Where do I inspect? <strong>Charts + tables</strong>
+      <div class="mv-home-mini-grid">
+        <div class="mv-home-mini-card">
+          <div class="mv-home-mini-title">Product role</div>
+          <div class="mv-home-mini-copy">
+            Monitoring + analyst visibility
+            <br><br>
+            Use MarketVista to identify what changed, what is elevated, what is delayed, and which assets deserve deeper review.
+          </div>
         </div>
 
-        <div style="margin-top:16px;">
-          <a href="{% url 'monitoring:dashboard' %}" class="mv-btn-solid" style="width:100%;justify-content:center;">
-            Open Monitoring Dashboard
+        <div class="mv-home-mini-card">
+          <div class="mv-home-mini-title">What this app answers</div>
+          <div class="mv-home-mini-copy">
+            What changed? <strong>Signals</strong><br>
+            Can I trust the data? <strong>Freshness</strong><br>
+            What needs attention? <strong>Watchlist</strong><br>
+            Where do I inspect? <strong>Charts + tables</strong>
+          </div>
+
+          <div class="mv-home-cta-row">
+            <a href="{% url 'monitoring:dashboard' %}" class="mv-btn-solid mv-home-full-btn">
+              Open Monitoring Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mv-card">
+      <div class="mv-home-section-title">Quick access</div>
+
+      <div class="mv-home-quick-grid">
+        <div class="mv-home-quick-card">
+          <h3 class="mv-home-quick-title">Dashboard</h3>
+          <p class="mv-home-quick-copy">
+            Review signals, freshness, charts, price tables, and monitoring context.
+          </p>
+          <a href="{% url 'monitoring:dashboard' %}" class="mv-btn mv-home-btn-cyan">
+            Open Dashboard
+          </a>
+        </div>
+
+        <div class="mv-home-quick-card">
+          <h3 class="mv-home-quick-title">Watchlist</h3>
+          <p class="mv-home-quick-copy">
+            Track key assets and monitor their signal status in one surface.
+          </p>
+          <a href="{% url 'monitoring:watchlist' %}" class="mv-btn mv-home-btn-cyan">
+            View Watchlist
+          </a>
+        </div>
+
+        <div class="mv-home-quick-card">
+          <h3 class="mv-home-quick-title">Signals</h3>
+          <p class="mv-home-quick-copy">
+            Review ELEVATED, WATCHLIST, and INFO signals across all tracked assets.
+          </p>
+          <a href="{% url 'monitoring:signals' %}" class="mv-btn mv-home-btn-amber">
+            View Signals
+          </a>
+        </div>
+
+        <div class="mv-home-quick-card">
+          <h3 class="mv-home-quick-title">Alerts</h3>
+          <p class="mv-home-quick-copy">
+            Review current user alerts and keep monitoring attention aligned with important conditions.
+          </p>
+          <a href="{% url 'monitoring:alert_list' %}" class="mv-btn mv-home-btn-light">
+            View Alerts
+          </a>
+        </div>
+
+        <div class="mv-home-quick-card full">
+          <h3 class="mv-home-quick-title">Create Alert</h3>
+          <p class="mv-home-quick-copy">
+            Add a price alert for a tracked asset and turn market conditions into an actionable trigger.
+          </p>
+          <a href="{% url 'monitoring:create_alert' %}" class="mv-btn mv-home-btn-amber">
+            Create Alert
           </a>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 
-  <section class="mv-card">
-    <div class="mv-home-section-title">Quick access</div>
-
-    <div class="mv-home-quick-grid">
-      <div class="mv-home-quick-card">
-        <h3 class="mv-home-quick-title">Dashboard</h3>
-        <p class="mv-home-quick-copy">
-          Review signals, freshness, charts, price tables, and monitoring context.
-        </p>
-        <a href="{% url 'monitoring:dashboard' %}" class="mv-btn" style="border-color:#00c7ff;color:#00c7ff;">
-          Open Dashboard
-        </a>
+  <div class="mv-home-meta-grid">
+    <section class="mv-card">
+      <div class="mv-home-section-title">Admin monitoring tools</div>
+      <div class="mv-home-body-copy">
+        Open Django admin to inspect assets, alerts, market signals, price snapshots, OHLC history, and watchlist items.
       </div>
 
-      <div class="mv-home-quick-card">
-        <h3 class="mv-home-quick-title">Watchlist</h3>
-        <p class="mv-home-quick-copy">
-          Track key assets and monitor their signal status in one surface.
-        </p>
-        <a href="{% url 'monitoring:watchlist' %}" class="mv-btn" style="border-color:#00c7ff;color:#00c7ff;">
-          View Watchlist
-        </a>
-      </div>
+      {% if user.is_staff %}
+        <div class="mv-home-admin-row">
+          <a href="/admin/" class="mv-btn mv-home-btn-amber">
+            Open Admin Panel
+          </a>
+        </div>
+      {% endif %}
+    </section>
 
-      <div class="mv-home-quick-card">
-        <h3 class="mv-home-quick-title">Signals</h3>
-        <p class="mv-home-quick-copy">
-          Review ELEVATED, WATCHLIST, and INFO signals across all tracked assets.
-        </p>
-        <a href="{% url 'monitoring:signals' %}" class="mv-btn" style="border-color:#ffcc00;color:#ffcc00;">
-          View Signals
-        </a>
+    <section class="mv-card">
+      <div class="mv-home-section-title">Monitoring priorities</div>
+      <div class="mv-home-list">
+        <div>• Surface elevated signals before deeper planning</div>
+        <div>• Show freshness so analysts can judge trust</div>
+        <div>• Keep watchlist items visible in one place</div>
+        <div>• Back charts and tables with stored OHLC and snapshot data</div>
       </div>
+    </section>
 
-      <div class="mv-home-quick-card">
-        <h3 class="mv-home-quick-title">Alerts</h3>
-        <p class="mv-home-quick-copy">
-          Review current user alerts and keep monitoring attention aligned with important conditions.
-        </p>
-        <a href="{% url 'monitoring:alert_list' %}" class="mv-btn" style="border-color:#ffffff;color:#ffffff;">
-          View Alerts
-        </a>
+    <section class="mv-card">
+      <div class="mv-home-section-title">Suite handoff</div>
+      <div class="mv-home-suite-grid">
+        <div><span>Upstream</span>DataBridge Market API</div>
+        <div><span>This layer</span>MarketVista</div>
+        <div><span>Next step</span>RiskWise Planner</div>
+        <div><span>Outcome review</span>TradeIntel 360</div>
       </div>
+    </section>
+  </div>
 
-      <div class="mv-home-quick-card full">
-        <h3 class="mv-home-quick-title">Create Alert</h3>
-        <p class="mv-home-quick-copy">
-          Add a price alert for a tracked asset and turn market conditions into an actionable trigger.
-        </p>
-        <a href="{% url 'monitoring:create_alert' %}" class="mv-btn" style="border-color:#ffcc00;color:#ffcc00;">
-          Create Alert
-        </a>
+  <div class="mv-home-reviewer">
+    <div class="mv-home-reviewer-left">
+      <div class="mv-home-reviewer-eye">Reviewer-ready</div>
+      <div class="mv-home-reviewer-copy">
+        This repo is packaged so a reviewer can inspect the dashboard, admin monitoring models, and seeded demo state quickly.
       </div>
     </div>
-  </section>
-</div>
 
-<div class="mv-home-meta-grid">
-  <section class="mv-card">
-    <div class="mv-home-section-title">Admin monitoring tools</div>
-    <div class="mv-home-body-copy">
-      Open Django admin to inspect assets, alerts, market signals, price snapshots, OHLC history, and watchlist items.
-    </div>
-
-    {% if user.is_staff %}
-      <div style="display:flex;justify-content:flex-end;margin-top:18px;">
-        <a href="/admin/" class="mv-btn" style="border-color:#ffcc00;color:#ffcc00;">
-          Open Admin Panel
-        </a>
-      </div>
-    {% endif %}
-  </section>
-
-  <section class="mv-card">
-    <div class="mv-home-section-title">Monitoring priorities</div>
-    <div class="mv-home-list">
-      <div>• Surface elevated signals before deeper planning</div>
-      <div>• Show freshness so analysts can judge trust</div>
-      <div>• Keep watchlist items visible in one place</div>
-      <div>• Back charts and tables with stored OHLC and snapshot data</div>
-    </div>
-  </section>
-
-  <section class="mv-card">
-    <div class="mv-home-section-title">Suite handoff</div>
-    <div class="mv-home-suite-grid">
-      <div><span>Upstream</span>DataBridge Market API</div>
-      <div><span>This layer</span>MarketVista</div>
-      <div><span>Next step</span>RiskWise Planner</div>
-      <div><span>Outcome review</span>TradeIntel 360</div>
-    </div>
-  </section>
-</div>
-
-<div class="mv-home-reviewer">
-  <div class="mv-home-reviewer-left">
-    <div class="mv-home-reviewer-eye">Reviewer-ready</div>
-    <div class="mv-home-reviewer-copy">
-      This repo is packaged so a reviewer can inspect the dashboard, admin monitoring models, and seeded demo state quickly.
+    <div class="mv-home-reviewer-tags">
+      <span>Seeded signals</span>
+      <span>Admin inspectability</span>
+      <span>Smoke tests</span>
     </div>
   </div>
 
-  <div class="mv-home-reviewer-tags">
-    <span>Seeded signals</span>
-    <span>Admin inspectability</span>
-    <span>Smoke tests</span>
-  </div>
 </div>
-
 {% endblock %}

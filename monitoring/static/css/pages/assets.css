@@ -1,0 +1,151 @@
+.mv-assets-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mv-assets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.mv-asset-browser-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mv-asset-browser-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mv-asset-browser-ident {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mv-asset-browser-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.mv-asset-browser-meta {
+  min-width: 0;
+}
+
+.mv-asset-browser-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.mv-asset-browser-symbol {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.30);
+}
+
+.mv-asset-browser-type {
+  font-size: 9px;
+}
+
+.mv-asset-browser-mid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mv-asset-browser-price {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.mv-asset-browser-move {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.mv-asset-browser-no-price {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.30);
+}
+
+.mv-asset-browser-severity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mv-asset-browser-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.mv-asset-browser-detail-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.mv-asset-browser-watch-btn {
+  min-width: 38px;
+  justify-content: center;
+}
+
+.mv-asset-browser-watch-on {
+  color: #0d9488;
+}
+
+.mv-assets-empty {
+  text-align: center;
+}
+
+.mv-assets-empty-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+  opacity: 0.3;
+}
+
+.mv-assets-empty-title {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.mv-assets-empty-copy {
+  margin-top: 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.mv-assets-code {
+  color: #0d9488;
+}
+
+@media (max-width: 760px) {
+  .mv-assets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mv-asset-browser-top,
+  .mv-asset-browser-mid {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mv-asset-browser-actions {
+    width: 100%;
+  }
+
+  .mv-asset-browser-detail-btn {
+    width: 100%;
+  }
+}

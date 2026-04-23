@@ -1,0 +1,210 @@
+.mv-auth-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mv-auth-hero {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 14px;
+}
+
+.mv-auth-eyebrow {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+
+.mv-auth-title {
+  margin: 0 0 14px;
+  font-size: 44px;
+  line-height: 0.98;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.mv-auth-subtitle {
+  margin: 0 0 18px;
+  max-width: 820px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.mv-auth-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.mv-auth-side-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.mv-auth-side-headline {
+  margin: 0 0 10px;
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.mv-auth-side-copy {
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.mv-auth-main {
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: 14px;
+}
+
+.mv-auth-form-wrap,
+.mv-auth-side-wrap {
+  min-width: 0;
+}
+
+.mv-auth-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.mv-auth-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.mv-auth-card-meta {
+  font-size: 12px;
+  color: #0d9488;
+}
+
+.mv-auth-form-error {
+  margin-bottom: 16px;
+}
+
+.mv-auth-field-group {
+  margin-bottom: 18px;
+}
+
+.mv-auth-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.mv-auth-input {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  color: #0b1020;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  box-shadow: none;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.mv-auth-input:focus {
+  border-color: rgba(13, 148, 136, 0.5);
+  box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.15);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.mv-auth-error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.mv-auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.mv-auth-actions .mv-btn-solid,
+.mv-auth-actions .mv-btn {
+  min-width: 180px;
+  min-height: 48px;
+  justify-content: center;
+}
+
+.mv-auth-list {
+  display: grid;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.84);
+  margin-bottom: 18px;
+}
+
+.mv-auth-kv {
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.08);
+}
+
+.mv-auth-kv-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.mv-auth-kv-row span:first-child {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.mv-auth-kv-row span:last-child {
+  color: #e2e8f0;
+  font-weight: 600;
+  text-align: right;
+}
+
+@media (max-width: 1100px) {
+  .mv-auth-hero,
+  .mv-auth-main {
+    grid-template-columns: 1fr;
+  }
+
+  .mv-auth-title {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 700px) {
+  .mv-auth-title {
+    font-size: 32px;
+  }
+
+  .mv-auth-actions .mv-btn-solid,
+  .mv-auth-actions .mv-btn {
+    width: 100%;
+    min-width: 0;
+  }
+}

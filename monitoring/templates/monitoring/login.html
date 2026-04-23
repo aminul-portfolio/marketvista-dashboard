@@ -1,143 +1,153 @@
 {% extends "monitoring/base.html" %}
+{% load static %}
 
 {% block title %}Login{% endblock %}
+{% block page_title %}Login{% endblock %}
+{% block breadcrumb %}Command Centre › Login{% endblock %}
 
 {% block extra_head %}
-<style>
-  .mv-auth-input {
-    background: rgba(255,255,255,0.92) !important;
-    border: 1px solid rgba(255,255,255,0.18) !important;
-    border-radius: 12px !important;
-    min-height: 52px !important;
-    box-shadow: none !important;
-    color: #0b1020 !important;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.95rem;
-  }
-  .mv-auth-input:focus {
-    border-color: rgba(13,148,136,0.5) !important;
-    box-shadow: 0 0 0 0.2rem rgba(13,148,136,0.15) !important;
-    background: rgba(255,255,255,0.96) !important;
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/pages/auth.css' %}">
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
+{% block topbar_right %}
+  <span class="mv-freshness">Secure account access</span>
+{% endblock %}
 
-  <div class="row justify-content-center">
-    <div class="col-12 col-xl-10">
-      <section class="mv-hero mv-animate-1">
-        <div class="mv-eyebrow">
-          <i class="bi bi-box-arrow-in-right"></i>
-          Account access surface
-        </div>
-        <div class="d-flex flex-column flex-lg-row justify-content-between gap-4 mt-3">
-          <div class="flex-grow-1">
-            <h1 class="mv-title">Sign In to MarketVista</h1>
-            <p class="mv-subtitle">
-              Access your monitoring dashboard, review current alerts, inspect signal flow,
-              and work through the monitoring-first layer of your fintech suite.
-            </p>
-            <div class="mv-chip-row">
-              <span class="mv-chip"><i class="bi bi-speedometer2"></i> Dashboard access</span>
-              <span class="mv-chip"><i class="bi bi-bell"></i> Alerts review</span>
-              <span class="mv-chip"><i class="bi bi-diagram-3"></i> Suite-connected workflow</span>
-            </div>
-          </div>
-          <div class="mv-hero-side">
-            <div class="mv-hero-side-label">Entry point</div>
-            <div class="mv-hero-side-value">Monitoring-first analyst visibility</div>
-            <div class="mv-hero-side-note">
-              Sign in to open the MarketVista dashboard and continue from signals, freshness,
-              and watchlist review into deeper planning or outcome workflows.
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+{% block attr_strip %}
+<div class="mv-attr-strip">
+  <div class="mv-attr-left">
+    <div class="mv-attr-dot"></div>
+    <span class="mv-attr-txt">Sign in to access dashboard, watchlist, signals, alerts, and asset review surfaces.</span>
+  </div>
+  <span class="mv-attr-right">Authentication · monitoring workflow · analyst access</span>
+</div>
+{% endblock %}
+
+{% block page_content %}
+<div class="mv-auth-page">
+
+  <div class="mv-auth-hero">
+    <section class="mv-card">
+      <div class="mv-auth-eyebrow">Account access surface</div>
+
+      <h1 class="mv-auth-title">Sign In to MarketVista</h1>
+
+      <p class="mv-auth-subtitle">
+        Access your monitoring dashboard, review current alerts, inspect signal flow,
+        and work through the monitoring-first layer of your fintech suite.
+      </p>
+
+      <div class="mv-auth-chip-row">
+        <span>◉ Dashboard access</span>
+        <span>◉ Alerts review</span>
+        <span>◉ Suite-connected workflow</span>
+      </div>
+    </section>
+
+    <section class="mv-card">
+      <div class="mv-auth-side-title">Entry point</div>
+
+      <h2 class="mv-auth-side-headline">Monitoring-first analyst visibility</h2>
+
+      <div class="mv-auth-side-copy">
+        Sign in to open the MarketVista dashboard and continue from signals, freshness,
+        and watchlist review into deeper planning or outcome workflows.
+      </div>
+    </section>
   </div>
 
-  <div class="row justify-content-center mt-4">
-    <div class="col-12 col-lg-10 col-xl-8">
-      <section class="mv-panel-card mv-animate-2">
-        <div class="mv-block-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-person-lock me-2"></i>Login form</span>
-          <span class="small">Secure access</span>
-        </div>
-        <div class="mv-surface-body">
-          <div class="row g-4">
-            <div class="col-12 col-xl-7">
-              <form method="post" novalidate>
-                {% csrf_token %}
-                {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+  <div class="mv-auth-main">
+    <section class="mv-card mv-auth-form-wrap">
+      <div class="mv-auth-card-head">
+        <span class="mv-auth-card-title">Login form</span>
+        <span class="mv-auth-card-meta">Secure access</span>
+      </div>
 
-                {% if form.non_field_errors %}
-                  <div class="alert mv-alert mb-4">
-                    <div class="d-flex align-items-start gap-2">
-                      <i class="bi bi-exclamation-triangle mt-1"></i>
-                      <div>{% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}</div>
-                    </div>
-                  </div>
-                {% endif %}
+      <form method="post" novalidate id="loginForm">
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
-                <div class="mb-4">
-                  <label for="{{ form.username.id_for_label }}" class="form-label text-light fw-semibold">Username</label>
-                  <input type="text" name="username" id="{{ form.username.id_for_label }}"
-                         class="form-control mv-auth-input" autocomplete="username"
-                         {% if form.username.value %}value="{{ form.username.value }}"{% endif %}>
-                  {% if form.username.errors %}
-                    <div class="text-danger small mt-2">{% for e in form.username.errors %}<div>{{ e }}</div>{% endfor %}</div>
-                  {% endif %}
-                </div>
-
-                <div class="mb-4">
-                  <label for="{{ form.password.id_for_label }}" class="form-label text-light fw-semibold">Password</label>
-                  <input type="password" name="password" id="{{ form.password.id_for_label }}"
-                         class="form-control mv-auth-input" autocomplete="current-password">
-                  {% if form.password.errors %}
-                    <div class="text-danger small mt-2">{% for e in form.password.errors %}<div>{{ e }}</div>{% endfor %}</div>
-                  {% endif %}
-                </div>
-
-                <div class="d-flex flex-column flex-sm-row gap-3 pt-2">
-                  <button type="submit" class="btn mv-primary-btn d-inline-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-box-arrow-in-right"></i><span>Login</span>
-                  </button>
-                  <a href="{% url 'monitoring:register' %}" class="btn btn-outline-light d-inline-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-person-plus"></i><span>Create Account</span>
-                  </a>
-                </div>
-              </form>
-            </div>
-
-            <div class="col-12 col-xl-5">
-              <div class="mv-panel-card h-100" style="background:rgba(10,18,40,0.55);">
-                <div class="mv-block-header">
-                  <span><i class="bi bi-compass me-2"></i>After login</span>
-                </div>
-                <div class="mv-surface-body">
-                  <ul class="list-unstyled mb-0 d-grid gap-3">
-                    <li class="mv-section-note">• Review signal severity and freshness status.</li>
-                    <li class="mv-section-note">• Inspect top mover and watchlist context.</li>
-                    <li class="mv-section-note">• Open charts and OHLC-backed monitoring tables.</li>
-                    <li class="mv-section-note">• Create and manage alert thresholds for tracked assets.</li>
-                  </ul>
-                  <hr class="border-secondary my-4">
-                  <div class="mv-kv">
-                    <div class="mv-kv-row"><span>Primary destination</span><span>Dashboard</span></div>
-                    <div class="mv-kv-row"><span>Secondary surface</span><span>Signals + Alerts</span></div>
-                    <div class="mv-kv-row"><span>Admin access</span><span>Staff only</span></div>
-                    <div class="mv-kv-row"><span>Workflow fit</span><span>Monitoring layer</span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {% if form.non_field_errors %}
+          <div class="mv-message error mv-auth-form-error">
+            {% for error in form.non_field_errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
           </div>
+        {% endif %}
+
+        <div class="mv-auth-field-group">
+          <label for="{{ form.username.id_for_label }}" class="mv-auth-label">Username</label>
+          <input
+            type="text"
+            name="username"
+            id="{{ form.username.id_for_label }}"
+            class="mv-auth-input"
+            autocomplete="username"
+            {% if form.username.value %}value="{{ form.username.value }}"{% endif %}
+          >
+          {% if form.username.errors %}
+            <div class="mv-auth-error">
+              {% for e in form.username.errors %}
+                <div>{{ e }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
         </div>
-      </section>
-    </div>
+
+        <div class="mv-auth-field-group">
+          <label for="{{ form.password.id_for_label }}" class="mv-auth-label">Password</label>
+          <input
+            type="password"
+            name="password"
+            id="{{ form.password.id_for_label }}"
+            class="mv-auth-input"
+            autocomplete="current-password"
+          >
+          {% if form.password.errors %}
+            <div class="mv-auth-error">
+              {% for e in form.password.errors %}
+                <div>{{ e }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mv-auth-actions">
+          <button type="submit" class="mv-btn-solid">
+            Login
+          </button>
+
+          <a href="{% url 'monitoring:register' %}" class="mv-btn">
+            Create Account
+          </a>
+        </div>
+      </form>
+    </section>
+
+    <section class="mv-card mv-auth-side-wrap">
+      <div class="mv-auth-card-head">
+        <span class="mv-auth-card-title">After login</span>
+      </div>
+
+      <div class="mv-auth-list">
+        <div>• Review signal severity and freshness status.</div>
+        <div>• Inspect top mover and watchlist context.</div>
+        <div>• Open charts and OHLC-backed monitoring tables.</div>
+        <div>• Create and manage alert thresholds for tracked assets.</div>
+      </div>
+
+      <div class="mv-auth-kv">
+        <div class="mv-auth-kv-row"><span>Primary destination</span><span>Dashboard</span></div>
+        <div class="mv-auth-kv-row"><span>Secondary surface</span><span>Signals + Alerts</span></div>
+        <div class="mv-auth-kv-row"><span>Admin access</span><span>Staff only</span></div>
+        <div class="mv-auth-kv-row"><span>Workflow fit</span><span>Monitoring layer</span></div>
+      </div>
+    </section>
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/forms.js' %}"></script>
 {% endblock %}

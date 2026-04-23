@@ -2,18 +2,30 @@
 {% load static %}
 
 {% block title %}Dashboard{% endblock %}
-
-{% block page_title %}Market Dashboard{% endblock %}
-
+{% block page_title %}Dashboard{% endblock %}
 {% block breadcrumb %}Command Centre › Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/dashboard.css' %}">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+{% endblock %}
 
 {% block topbar_right %}
   {% if freshness_signal %}
     {% if freshness_signal.delay_minutes is not None %}
-      <span class="mv-freshness">Updated {{ freshness_signal.delay_minutes }} min ago</span>
+      <span class="mv-freshness {% if freshness_signal.delay_minutes <= 5 %}is-fresh{% elif freshness_signal.delay_minutes <= 60 %}is-delayed{% else %}is-stale{% endif %}">
+        {{ freshness_signal.label }}
+        {% if freshness_signal.delay_minutes <= 0 %}
+          · Just now
+        {% else %}
+          · {{ freshness_signal.delay_minutes }} min ago
+        {% endif %}
+      </span>
     {% else %}
       <span class="mv-freshness">No market data loaded</span>
     {% endif %}
+  {% else %}
+    <span class="mv-freshness">Monitoring dashboard</span>
   {% endif %}
 {% endblock %}
 
@@ -31,155 +43,189 @@
 {% endblock %}
 
 {% block page_content %}
+<div class="mv-dashboard">
 
-<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px;">
-  <div class="mv-sum-card">
-    <div class="mv-sum-eye">Assets Tracked</div>
-    <div class="mv-sum-val">{{ tracked_assets_count }}</div>
-    <div class="mv-sum-sub">Monitored assets with current data</div>
-  </div>
-  <div class="mv-sum-card">
-    <div class="mv-sum-eye">Active Alerts</div>
-    <div class="mv-sum-val" style="color:#f59e0b;">{{ active_alerts_count }}</div>
-    <div class="mv-sum-sub">
-      {% if triggered_alerts_count %}
-        {{ triggered_alerts_count }} triggered recently
-      {% else %}
-        User-defined thresholds
-      {% endif %}
-    </div>
-  </div>
-  <div class="mv-sum-card">
-    <div class="mv-sum-eye">Signals Today</div>
-    <div class="mv-sum-val">{{ signals_today_count }}</div>
-    <div class="mv-sum-sub">{{ elevated_signals_count }} elevated</div>
-  </div>
-  <div class="mv-sum-card">
-    <div class="mv-sum-eye">Top Mover Δ</div>
-    <div class="mv-sum-val">
-      {% if top_mover %}
-        {% if top_mover.pct_move >= 0 %}+{% endif %}{{ top_mover.pct_move|floatformat:2 }}%
-      {% else %}
-        —
-      {% endif %}
-    </div>
-    <div class="mv-sum-sub">
-      {% if top_mover %}{{ top_mover.symbol }}{% else %}No mover data{% endif %}
-    </div>
-  </div>
-</div>
-
-<div class="mv-two-col-equal" style="margin-bottom:14px;">
-  <div class="mv-card">
-    <div class="mv-card-hd">
-      <span class="mv-card-title">Top Movers</span>
-      <a href="{% url 'monitoring:asset_list' %}" class="mv-card-link">All assets →</a>
+  <section class="mv-dashboard-kpis">
+    <div class="mv-kpi-card">
+      <div class="mv-kpi-label">Assets Tracked</div>
+      <div class="mv-kpi-value">{{ tracked_assets_count }}</div>
+      <div class="mv-kpi-context">Monitored assets with current data</div>
     </div>
 
-    {% if top_movers %}
-      {% for mover in top_movers %}
-      <div class="mv-detail-sig-row">
-        <span class="mv-sig-type-badge">{{ mover.symbol }}</span>
-        <span class="mv-sig-detail-msg">{{ mover.name }}</span>
-        <span class="mv-sig-metric {% if mover.pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
-          {% if mover.pct_move >= 0 %}+{% endif %}{{ mover.pct_move|floatformat:2 }}%
-        </span>
-        <a href="{% url 'monitoring:asset_detail' mover.symbol %}" class="mv-sc-link">View →</a>
-      </div>
-      {% endfor %}
-    {% else %}
-      <div class="mv-empty" style="padding:20px;">No mover data available.</div>
-    {% endif %}
-  </div>
-
-  <div class="mv-card">
-    <div class="mv-card-hd">
-      <span class="mv-card-title">Latest Signals</span>
-      <a href="{% url 'monitoring:signals' %}" class="mv-card-link">Signals →</a>
-    </div>
-
-    {% if latest_signals %}
-      {% for signal in latest_signals %}
-      <div class="mv-detail-sig-row">
-        <span class="mv-chip
-          {% if signal.severity == 'ELEVATED' %}elevated
-          {% elif signal.severity == 'WATCHLIST' %}watchlist
-          {% else %}info{% endif %}">
-          {{ signal.severity }}
-        </span>
-        <span class="mv-sig-type-badge">{{ signal.asset.symbol }}</span>
-        <span class="mv-sig-detail-msg">{{ signal.details|default:signal.title|truncatechars:70 }}</span>
-        <span class="mv-sig-ts">{{ signal.signal_timestamp|timesince }} ago</span>
-        <a href="{% url 'monitoring:asset_detail' signal.asset.symbol %}" class="mv-sc-link">View →</a>
-      </div>
-      {% endfor %}
-    {% else %}
-      <div class="mv-empty" style="padding:20px;">No active signals available yet.</div>
-    {% endif %}
-  </div>
-</div>
-
-<div class="mv-two-col-equal" style="margin-bottom:14px;">
-  <div class="mv-card">
-    <div class="mv-card-hd">
-      <span class="mv-card-title">Watchlist Quick View</span>
-      <a href="{% url 'monitoring:watchlist' %}" class="mv-card-link">{{ watchlist_count }} tracked →</a>
-    </div>
-
-    {% if watchlist_items %}
-      {% for item in watchlist_items %}
-      <div class="mv-alert-item">
-        <div class="mv-ai-row">
-          <span class="mv-ai-label">{{ item.asset.symbol }} — {{ item.asset.name }}</span>
-          <a href="{% url 'monitoring:asset_detail' item.asset.symbol %}" class="mv-sc-link">View →</a>
-        </div>
-        {% if item.note %}
-          <div class="mv-ai-detail">{{ item.note }}</div>
+    <div class="mv-kpi-card">
+      <div class="mv-kpi-label">Active Alerts</div>
+      <div class="mv-kpi-value" style="color:#f59e0b;">{{ active_alerts_count }}</div>
+      <div class="mv-kpi-context">
+        {% if triggered_alerts_count %}
+          {{ triggered_alerts_count }} triggered recently
         {% else %}
-          <div class="mv-ai-detail">{{ item.asset.get_asset_type_display }}</div>
+          User-defined thresholds
         {% endif %}
       </div>
-      {% endfor %}
-    {% else %}
-      <div class="mv-empty" style="padding:20px;">
-        No watchlist items yet.
-        <div style="margin-top:8px;">
-          <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary">Browse assets →</a>
-        </div>
-      </div>
-    {% endif %}
-  </div>
-
-  <div class="mv-card">
-    <div class="mv-card-hd">
-      <span class="mv-card-title">Triggered Alerts</span>
-      <a href="{% url 'monitoring:alert_list' %}" class="mv-card-link">Alerts →</a>
     </div>
 
-    {% if recent_triggered_alerts %}
-      {% for alert in recent_triggered_alerts %}
-      <div class="mv-alert-item">
-        <div class="mv-ai-row">
-          <span class="mv-ai-label">{{ alert.asset.symbol }} {{ alert.direction }} {{ alert.target_price }}</span>
-          <span class="mv-chip triggered">Triggered</span>
-        </div>
-        <div class="mv-ai-detail">{{ alert.created_at|timesince }} ago</div>
-      </div>
-      {% endfor %}
-    {% else %}
-      <div class="mv-empty" style="padding:20px;">No triggered alerts yet.</div>
-    {% endif %}
-  </div>
-</div>
-
-<div class="mv-footer-cta">
-  <div class="mv-fc-left">
-    <div class="mv-fc-eye">FinTech Suite</div>
-    <div class="mv-fc-txt">
-      Once a position has been planned in RiskWise, review its outcome in TradeIntel 360.
+    <div class="mv-kpi-card">
+      <div class="mv-kpi-label">Signals Today</div>
+      <div class="mv-kpi-value">{{ signals_today_count }}</div>
+      <div class="mv-kpi-context">{{ elevated_signals_count }} elevated</div>
     </div>
-  </div>
-  <a href="#" class="mv-btn">Review trade outcomes in TradeIntel 360 →</a>
-</div>
 
+    <div class="mv-kpi-card">
+      <div class="mv-kpi-label">Top Mover Δ</div>
+      <div class="mv-kpi-value">
+        {% if top_mover %}
+          {% if top_mover.pct_move >= 0 %}+{% endif %}{{ top_mover.pct_move|floatformat:2 }}%
+        {% else %}
+          —
+        {% endif %}
+      </div>
+      <div class="mv-kpi-context">
+        {% if top_mover %}{{ top_mover.symbol }}{% else %}No mover data{% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="mv-dashboard-panels">
+    <div class="mv-card">
+      <div class="mv-card-hd">
+        <span class="mv-card-title">Top Movers</span>
+        <a href="{% url 'monitoring:asset_list' %}" class="mv-card-link">All assets →</a>
+      </div>
+
+      {% if top_movers %}
+        <div class="mv-top-movers-list">
+          {% for mover in top_movers %}
+          <div class="mv-top-mover-row">
+            <div class="mv-rank-pill">{{ forloop.counter }}</div>
+
+            <div>
+              <div class="mv-top-mover-symbol">{{ mover.symbol }}</div>
+              <div class="mv-top-mover-name">{{ mover.name }}</div>
+            </div>
+
+            <div class="mv-top-mover-price">
+              {% if mover.latest_price %}
+                {{ mover.latest_price }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+
+            <div class="mv-top-mover-move {% if mover.pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
+              {% if mover.pct_move >= 0 %}+{% endif %}{{ mover.pct_move|floatformat:2 }}%
+            </div>
+
+            <a href="{% url 'monitoring:asset_detail' mover.symbol %}" class="mv-sc-link">View →</a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="mv-empty">No mover data available.</div>
+      {% endif %}
+    </div>
+
+    <div class="mv-card">
+      <div class="mv-card-hd">
+        <span class="mv-card-title">Latest Signals</span>
+        <a href="{% url 'monitoring:signals' %}" class="mv-card-link">Signals →</a>
+      </div>
+
+      {% if latest_signals %}
+        <div class="mv-latest-signals-list">
+          {% for signal in latest_signals %}
+          <div class="mv-detail-sig-row">
+            <span class="mv-chip {% if signal.severity == 'ELEVATED' %}elevated{% elif signal.severity == 'WATCHLIST' %}watchlist{% else %}info{% endif %}">
+              {{ signal.severity }}
+            </span>
+            <span class="mv-sig-type-badge">{{ signal.asset.symbol }}</span>
+            <span class="mv-sig-detail-msg">{{ signal.details|default:signal.title|truncatechars:70 }}</span>
+            <span class="mv-sig-ts" data-relative-time="{{ signal.signal_timestamp|date:'c' }}">
+              {{ signal.signal_timestamp|timesince }} ago
+            </span>
+            <a href="{% url 'monitoring:asset_detail' signal.asset.symbol %}" class="mv-sc-link">View →</a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="mv-empty">No active signals available yet.</div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="mv-dashboard-panels">
+    <div class="mv-card">
+      <div class="mv-card-hd">
+        <span class="mv-card-title">Watchlist Quick View</span>
+        <a href="{% url 'monitoring:watchlist' %}" class="mv-card-link">{{ watchlist_count }} tracked →</a>
+      </div>
+
+      {% if watchlist_items %}
+        <div class="mv-watchlist-quick-list">
+          {% for item in watchlist_items %}
+          <div class="mv-alert-item">
+            <div class="mv-ai-row">
+              <span class="mv-ai-label">{{ item.asset.symbol }} — {{ item.asset.name }}</span>
+              <a href="{% url 'monitoring:asset_detail' item.asset.symbol %}" class="mv-sc-link">View →</a>
+            </div>
+            {% if item.note %}
+              <div class="mv-ai-detail">{{ item.note }}</div>
+            {% else %}
+              <div class="mv-ai-detail">{{ item.asset.get_asset_type_display }}</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="mv-empty">
+          No watchlist items yet.
+          <div style="margin-top:8px;">
+            <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary">Browse assets →</a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="mv-card">
+      <div class="mv-card-hd">
+        <span class="mv-card-title">Triggered Alerts</span>
+        <a href="{% url 'monitoring:alert_list' %}" class="mv-card-link">Alerts →</a>
+      </div>
+
+      {% if recent_triggered_alerts %}
+        <div class="mv-triggered-alerts-list">
+          {% for alert in recent_triggered_alerts %}
+          <div class="mv-alert-item">
+            <div class="mv-ai-row">
+              <span class="mv-ai-label">
+                {{ alert.asset.symbol }} {{ alert.direction }} {{ alert.target_price|floatformat:2 }}
+              </span>
+              <span class="mv-chip triggered">Triggered</span>
+            </div>
+            <div class="mv-ai-detail" data-relative-time="{{ alert.created_at|date:'c' }}">
+              {{ alert.created_at|timesince }} ago
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="mv-empty">No triggered alerts yet.</div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="mv-footer-cta">
+    <div class="mv-fc-left">
+      <div class="mv-fc-eye">FinTech Suite</div>
+      <div class="mv-fc-txt">
+        Once a position has been planned in RiskWise, review its outcome in TradeIntel 360.
+      </div>
+    </div>
+    <a href="#" class="mv-btn">Review trade outcomes in TradeIntel 360 →</a>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}

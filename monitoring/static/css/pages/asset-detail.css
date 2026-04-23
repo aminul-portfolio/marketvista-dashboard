@@ -1,0 +1,189 @@
+.mv-asset-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mv-ad-top {
+  display: grid;
+  grid-template-columns: 1.12fr 0.88fr;
+  gap: 14px;
+}
+
+.mv-ad-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.mv-ad-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mv-ad-mini {
+  background: rgba(8, 16, 36, 0.45);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.mv-ad-mini-label {
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.36);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.mv-ad-mini-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--mv-text-strong);
+}
+
+.mv-ad-mini-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.mv-ad-context-card {
+  height: 100%;
+}
+
+.mv-ad-context-title {
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.mv-ad-context-copy {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.mv-ad-context-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.80);
+}
+
+.mv-ad-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.mv-ad-actions .mv-btn,
+.mv-ad-actions .mv-btn-solid {
+  min-width: 220px;
+  min-height: 46px;
+  justify-content: center;
+}
+
+.mv-ad-chart-wrap {
+  margin-top: 14px;
+}
+
+.mv-ad-chart-box {
+  height: 190px;
+  padding: 8px 0 4px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.mv-ad-bar {
+  flex: 1;
+  min-width: 6px;
+  border-radius: 3px 3px 0 0;
+  background: rgba(13, 148, 136, 0.30);
+}
+
+.mv-ad-bar.latest {
+  background: var(--mv-accent-primary);
+}
+
+.mv-ad-chart-foot {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.24);
+}
+
+.mv-ad-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.mv-ad-card-title {
+  margin-bottom: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.mv-ad-empty {
+  padding: 26px 18px;
+  text-align: center;
+}
+
+.mv-ad-empty-title {
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.mv-ad-back {
+  margin-top: 10px;
+}
+
+.mv-ad-back a {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.42);
+  text-decoration: none;
+}
+
+.mv-ad-back a:hover {
+  color: var(--mv-accent-primary);
+}
+
+@media (max-width: 1150px) {
+  .mv-ad-top,
+  .mv-ad-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .mv-ad-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mv-ad-chart-box {
+    height: 160px;
+  }
+
+  .mv-ad-actions .mv-btn,
+  .mv-ad-actions .mv-btn-solid {
+    width: 100%;
+    min-width: 0;
+  }
+}
