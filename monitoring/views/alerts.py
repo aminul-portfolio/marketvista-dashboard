@@ -11,6 +11,7 @@ from ..services.alerts import (
     create_user_alert_from_form,
     fetch_and_acknowledge_triggered_alerts,
     get_active_alert_count,
+    get_alert_review_rows,
     get_alert_summary,
 )
 from ..services.market import get_freshness_signal
@@ -42,13 +43,34 @@ def create_alert(request):
 
 @login_required
 def alert_list(request):
-    alerts = request.user.alerts.select_related("asset").all()
-    alert_summary = get_alert_summary(request.user)
+    """
+    Alert review page.
+
+    Important:
+    The alert table and KPI strip must be built from the same reviewed alert
+    rows. This prevents a reviewer-visible contradiction such as:
+    Triggered = 0 while the table displays a TRIGGERED row.
+    """
+    alerts = get_alert_review_rows(request.user)
+    alert_summary = get_alert_summary(request.user, alert_rows=alerts)
 
     context = {
         "alerts": alerts,
-        "active_alerts_count": alert_summary["active_count"],
+
+        # Preferred explicit names for the premium alert template.
+        "total_alerts_count": alert_summary["total_count"],
         "triggered_alerts_count": alert_summary["triggered_count"],
+        "pending_alerts_count": alert_summary["pending_count"],
+        "alert_rows_count": alert_summary["row_count"],
+
+        # Compatibility aliases for older template variable names.
+        "total_alerts": alert_summary["total_count"],
+        "triggered_count": alert_summary["triggered_count"],
+        "pending_count": alert_summary["pending_count"],
+        "alert_rows": alert_summary["row_count"],
+
+        # Sidebar / global shell values.
+        "active_alerts_count": alert_summary["pending_count"],
         "watchlist_count": get_watchlist_count(request.user),
         "sidebar_elevated_count": get_active_signals(severity="ELEVATED").count(),
         "freshness_signal": get_freshness_signal(),

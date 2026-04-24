@@ -14,10 +14,12 @@
 {% endblock %}
 
 {% block attr_strip %}
-<div class="mv-attr-strip">
+<div class="mv-attr-strip mv-attr-strip-premium">
   <div class="mv-attr-left">
     <div class="mv-attr-dot"></div>
-    <span class="mv-attr-txt">Create an account to access dashboard, watchlist, signals, alerts, and asset-level monitoring.</span>
+    <span class="mv-attr-txt">
+      Create an account to access dashboard, watchlist, signals, alerts, and asset-level monitoring.
+    </span>
   </div>
   <span class="mv-attr-right">Registration · monitoring workflow · analyst visibility</span>
 </div>
@@ -51,7 +53,7 @@
 
       <div class="mv-auth-side-copy">
         Registration gives you access to the monitoring-first dashboard, alert review surfaces,
-        and the wider DataBridge → MarketVista → RiskWise → TradeIntel workflow.
+        and the planned DataBridge → MarketVista → RiskWise → TradeIntel suite workflow.
       </div>
     </section>
   </div>
@@ -76,6 +78,7 @@
 
         <div class="mv-auth-field-group">
           <label for="{{ form.username.id_for_label }}" class="mv-auth-label">Username</label>
+
           <input
             type="text"
             name="username"
@@ -84,20 +87,25 @@
             autocomplete="username"
             {% if form.username.value %}value="{{ form.username.value }}"{% endif %}
           >
+
           {% if form.username.errors %}
             <div class="mv-auth-error">
-              {% for e in form.username.errors %}
-                <div>{{ e }}</div>
+              {% for error in form.username.errors %}
+                <div>{{ error }}</div>
               {% endfor %}
             </div>
           {% endif %}
+
           {% if form.username.help_text %}
-            <div class="mv-ca-note">{{ form.username.help_text|safe }}</div>
+            <div class="mv-auth-note">
+              {{ form.username.help_text|safe }}
+            </div>
           {% endif %}
         </div>
 
         <div class="mv-auth-field-group">
           <label for="{{ form.password1.id_for_label }}" class="mv-auth-label">Password</label>
+
           <input
             type="password"
             name="password1"
@@ -105,20 +113,25 @@
             class="mv-auth-input"
             autocomplete="new-password"
           >
+
           {% if form.password1.errors %}
             <div class="mv-auth-error">
-              {% for e in form.password1.errors %}
-                <div>{{ e }}</div>
+              {% for error in form.password1.errors %}
+                <div>{{ error }}</div>
               {% endfor %}
             </div>
           {% endif %}
+
           {% if form.password1.help_text %}
-            <div class="mv-ca-note">{{ form.password1.help_text|safe }}</div>
+            <div class="mv-auth-note">
+              {{ form.password1.help_text|safe }}
+            </div>
           {% endif %}
         </div>
 
         <div class="mv-auth-field-group">
           <label for="{{ form.password2.id_for_label }}" class="mv-auth-label">Confirm password</label>
+
           <input
             type="password"
             name="password2"
@@ -126,14 +139,16 @@
             class="mv-auth-input"
             autocomplete="new-password"
           >
+
           {% if form.password2.errors %}
             <div class="mv-auth-error">
-              {% for e in form.password2.errors %}
-                <div>{{ e }}</div>
+              {% for error in form.password2.errors %}
+                <div>{{ error }}</div>
               {% endfor %}
             </div>
           {% endif %}
-          <div class="mv-ca-note" data-password-match-hint></div>
+
+          <div class="mv-auth-note" data-password-match-hint></div>
         </div>
 
         <div class="mv-auth-actions">
@@ -161,10 +176,25 @@
       </div>
 
       <div class="mv-auth-kv">
-        <div class="mv-auth-kv-row"><span>Product role</span><span>Monitoring</span></div>
-        <div class="mv-auth-kv-row"><span>Primary surface</span><span>Dashboard</span></div>
-        <div class="mv-auth-kv-row"><span>User action</span><span>Alert creation</span></div>
-        <div class="mv-auth-kv-row"><span>Suite fit</span><span>Analyst visibility</span></div>
+        <div class="mv-auth-kv-row">
+          <span>Product role</span>
+          <span>Monitoring</span>
+        </div>
+
+        <div class="mv-auth-kv-row">
+          <span>Primary surface</span>
+          <span>Dashboard</span>
+        </div>
+
+        <div class="mv-auth-kv-row">
+          <span>User action</span>
+          <span>Alert creation</span>
+        </div>
+
+        <div class="mv-auth-kv-row">
+          <span>Suite fit</span>
+          <span>Analyst visibility</span>
+        </div>
       </div>
     </section>
   </div>

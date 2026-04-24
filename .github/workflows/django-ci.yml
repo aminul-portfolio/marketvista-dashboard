@@ -12,7 +12,7 @@ jobs:
 
     env:
       DJANGO_SECRET_KEY: ci-secret-key
-      DJANGO_DEBUG: "True"
+      DJANGO_DEBUG: "False"
       DJANGO_ALLOWED_HOSTS: 127.0.0.1,localhost
       DJANGO_CSRF_TRUSTED_ORIGINS: http://127.0.0.1:8000,http://localhost:8000
       DATABASE_URL: sqlite:///db.sqlite3
@@ -25,7 +25,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -36,9 +37,9 @@ jobs:
         run: python manage.py check
 
       - name: Run migrations
-        run: python manage.py migrate
+        run: python manage.py migrate --noinput
 
-      - name: Seed demo data
+      - name: Seed reviewer-ready demo data
         run: python manage.py seed_demo_data
 
       - name: Run tests

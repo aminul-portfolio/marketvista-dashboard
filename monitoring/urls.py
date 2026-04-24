@@ -10,6 +10,10 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
 
     path("watchlist/", views.watchlist_page, name="watchlist"),
+    path("signals/", views.signals_page, name="signals"),
+    path("assets/", views.asset_list, name="asset_list"),
+    path("assets/<path:symbol>/", views.asset_detail, name="asset_detail"),
+
     path("watchlist/add/<path:symbol>/", views.watchlist_add, name="watchlist_add"),
     path(
         "watchlist/remove/<path:symbol>/",
@@ -17,22 +21,21 @@ urlpatterns = [
         name="watchlist_remove",
     ),
 
-    path("signals/", views.signals_page, name="signals"),
-
-    path("assets/", views.asset_list, name="asset_list"),
-    path("assets/<path:symbol>/", views.asset_detail, name="asset_detail"),
-
-    path("alerts/", views.alert_list, name="alert_list"),
-    path("alerts/new/", views.create_alert, name="create_alert"),
-    path("alerts/add/", views.create_alert, name="alert_add"),
-
     path(
         "accounts/login/",
         auth_views.LoginView.as_view(template_name="monitoring/login.html"),
         name="login",
     ),
-    path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path(
+        "accounts/logout/",
+        auth_views.LogoutView.as_view(next_page="monitoring:home"),
+        name="logout",
+    ),
     path("accounts/register/", views.register, name="register"),
+
+    path("alerts/", views.alert_list, name="alert_list"),
+    path("alerts/new/", views.create_alert, name="create_alert"),
+    path("alerts/add/", views.create_alert, name="alert_add"),
 
     path("api/prices/", views.price_data, name="price_data"),
     path("api/ohlc/", views.ohlc_data, name="ohlc_data"),

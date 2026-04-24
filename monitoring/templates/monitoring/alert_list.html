@@ -10,163 +10,256 @@
 {% endblock %}
 
 {% block topbar_right %}
-  <span class="mv-freshness">{{ alerts|length }} total alert{{ alerts|length|pluralize }}</span>
+  <span class="mv-freshness">
+    {{ total_alerts_count }} total alert{{ total_alerts_count|pluralize }}
+  </span>
 {% endblock %}
 
 {% block attr_strip %}
-<div class="mv-attr-strip">
+<div class="mv-attr-strip mv-attr-strip-premium">
   <div class="mv-attr-left">
     <div class="mv-attr-dot"></div>
-    <span class="mv-attr-txt">Monitoring-aware workflow for alert review, signal pairing, and analyst follow-up.</span>
+    <span class="mv-attr-txt">
+      Alert review · Signal pairing · Watchlist context · Analyst follow-up
+    </span>
   </div>
-  <span class="mv-attr-right">User-defined triggers · dashboard pairing · review workflow</span>
+  <span class="mv-attr-right">
+    User-defined triggers · Dashboard pairing · Review workflow
+  </span>
 </div>
 {% endblock %}
 
 {% block page_content %}
 <div class="mv-alerts-page">
 
-  <div class="mv-al-hero">
-    <section class="mv-card">
+  <section class="mv-alerts-hero">
+    <div class="mv-alerts-hero-main">
       <div class="mv-al-eyebrow">User alert review surface</div>
 
-      <h1 class="mv-al-title">My Alerts</h1>
+      <h1 class="mv-al-title">Alert review console</h1>
 
       <p class="mv-al-subtitle">
-        Review your user-defined price alerts and keep monitoring attention aligned with the assets and levels that matter most.
+        Review threshold conditions, separate pending alerts from triggered events,
+        and keep analyst attention aligned with the assets and levels that matter most.
       </p>
 
       <div class="mv-al-chip-row">
-        <span>◉ {{ alerts|length }} total alerts</span>
-        <span>◉ Monitoring-aware workflow</span>
-        <span>◉ Pairs with dashboard signals</span>
+        <span>{{ total_alerts_count }} total alert{{ total_alerts_count|pluralize }}</span>
+        <span>Monitoring-aware workflow</span>
+        <span>Pairs with dashboard signals</span>
       </div>
-    </section>
+    </div>
 
-    <section class="mv-card">
-      <div class="mv-al-card-head mv-al-summary-head">
-        <span class="mv-al-card-title">Alert summary</span>
-      </div>
+    <aside class="mv-alerts-summary-panel">
+      <div class="mv-al-card-title">Alert summary</div>
 
       <div class="mv-al-summary-grid">
-        <div class="mv-sum-card">
-          <div class="mv-sum-eye">Total Alerts</div>
-          <div class="mv-sum-val">{{ alerts|length }}</div>
+        <div class="mv-al-summary-card">
+          <div class="mv-sum-eye">Total alerts</div>
+          <div class="mv-sum-val">{{ total_alerts_count }}</div>
         </div>
 
-        <div class="mv-sum-card">
+        <div class="mv-al-summary-card danger">
           <div class="mv-sum-eye">Triggered</div>
-          <div class="mv-sum-val mv-al-danger">{{ triggered_alerts_count }}</div>
+          <div class="mv-sum-val" data-triggered-alert-count>
+            {{ triggered_alerts_count }}
+          </div>
         </div>
 
-        <div class="mv-sum-card">
+        <div class="mv-al-summary-card warning">
           <div class="mv-sum-eye">Pending</div>
-          <div class="mv-sum-val mv-al-warning">{{ active_alerts_count }}</div>
+          <div class="mv-sum-val">{{ pending_alerts_count }}</div>
         </div>
 
-        <div class="mv-sum-card">
-          <div class="mv-sum-eye">Assets Covered</div>
-          <div class="mv-sum-val">{{ alerts|length }}</div>
+        <div class="mv-al-summary-card">
+          <div class="mv-sum-eye">Alert rows</div>
+          <div class="mv-sum-val">{{ alert_rows_count }}</div>
         </div>
       </div>
 
-      <div class="mv-al-primary-cta">
-        <a href="{% url 'monitoring:create_alert' %}" class="mv-btn-solid mv-al-full-btn">
-          Create New Alert
-        </a>
-      </div>
-    </section>
-  </div>
+      <a href="{% url 'monitoring:create_alert' %}" class="mv-btn-solid mv-al-full-btn">
+        Create New Alert
+      </a>
+    </aside>
+  </section>
+
+  <section class="mv-alerts-toolbar" aria-label="Alert controls">
+    <div class="mv-search-wrap">
+      <input
+        class="mv-search-input"
+        id="alertSearch"
+        data-alert-search
+        placeholder="Search alerts by asset, symbol, direction, or status…"
+      >
+    </div>
+
+    <select
+      class="mv-alert-status-select"
+      id="alertStatusFilter"
+      data-alert-status
+      aria-label="Filter alerts by status"
+    >
+      <option value="">All statuses</option>
+      <option value="pending">Pending</option>
+      <option value="triggered">Triggered</option>
+    </select>
+
+    <a href="{% url 'monitoring:create_alert' %}" class="mv-btn primary">
+      + Create alert
+    </a>
+  </section>
 
   <div class="mv-al-main">
     <section class="mv-card mv-al-registry">
       <div class="mv-al-card-head">
-        <span class="mv-al-card-title">Alert Registry</span>
-        <span class="mv-al-card-meta">{{ alerts|length }} row{{ alerts|length|pluralize }}</span>
+        <div>
+          <span class="mv-al-card-title">Alert registry</span>
+          <div class="mv-al-card-subtitle">
+            Threshold alerts created by the user and paired with monitored assets.
+          </div>
+        </div>
+
+        <span class="mv-al-card-meta">
+          {{ alert_rows_count }} row{{ alert_rows_count|pluralize }}
+        </span>
       </div>
 
       {% if alerts %}
         <div class="mv-al-row-head">
           <div>Asset</div>
-          <div>Direction</div>
+          <div>Condition</div>
           <div>Target</div>
           <div>Status / Created</div>
         </div>
 
         {% for alert in alerts %}
-        <div class="mv-al-row" data-status="{% if alert.is_triggered %}triggered{% else %}pending{% endif %}">
-          <div class="mv-al-asset">
-            <div class="mv-al-asset-main">{{ alert.asset.symbol }}</div>
-            <div class="mv-al-asset-sub">{{ alert.asset.name|default:alert.asset.symbol }}</div>
+          <div
+            class="mv-al-row mv-alert-item"
+            data-status="{{ alert.review_status }}"
+            data-name="{{ alert.asset.symbol|lower }} {{ alert.asset.name|lower }} {{ alert.direction|lower }} {{ alert.review_status }} {{ alert.target_price }}"
+          >
+            <div class="mv-al-asset">
+              <div class="mv-al-asset-main">{{ alert.asset.symbol }}</div>
+              <div class="mv-al-asset-sub">
+                {{ alert.asset.name|default:alert.asset.symbol }}
+              </div>
+            </div>
+
+            <div class="mv-al-direction">
+              {% if alert.direction == "above" %}
+                <span class="mv-chip info">ABOVE</span>
+              {% else %}
+                <span class="mv-chip watchlist">BELOW</span>
+              {% endif %}
+              <span>{{ alert.direction|upper }}</span>
+            </div>
+
+            <div class="mv-al-target">
+              ${{ alert.target_price|floatformat:2 }}
+            </div>
+
+            <div class="mv-al-created">
+              {% if alert.review_is_triggered %}
+                <span class="mv-chip danger">TRIGGERED</span>
+              {% else %}
+                <span class="mv-chip neutral">PENDING</span>
+              {% endif %}
+
+              <div>{{ alert.created_at|timesince }} ago</div>
+
+              {% if alert.current_price %}
+                <div class="mv-muted">
+                  Current: ${{ alert.current_price|floatformat:2 }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="mv-empty">No alerts created yet.</div>
+      {% endif %}
+
+      <div class="mv-alerts-no-results" data-alert-no-results hidden>
+        No alerts match your current search or status filter.
+      </div>
+    </section>
+
+    <aside class="mv-alerts-side">
+      <section class="mv-card mv-al-workflow">
+        <div class="mv-al-card-title">How alerts fit the workflow</div>
+
+        <div class="mv-alert-workflow-list">
+          <div class="mv-alert-workflow-step">
+            <span>01</span>
+            <div>
+              <strong>Threshold tracking</strong>
+              <p>Alerts monitor exact price conditions on chosen assets.</p>
+            </div>
           </div>
 
-          <div class="mv-al-direction">
-            {% if alert.direction == "above" %}
-              <span class="mv-chip info">ABOVE</span>
-            {% else %}
-              <span class="mv-chip watchlist">BELOW</span>
-            {% endif %}
-            <span>{{ alert.direction|upper }}</span>
+          <div class="mv-alert-workflow-step">
+            <span>02</span>
+            <div>
+              <strong>Signal pairing</strong>
+              <p>Signals explain broader market behaviour and elevated conditions.</p>
+            </div>
           </div>
 
-          <div class="mv-al-target">{{ alert.target_price|floatformat:2 }}</div>
+          <div class="mv-alert-workflow-step">
+            <span>03</span>
+            <div>
+              <strong>Watchlist visibility</strong>
+              <p>Watchlist items keep high-priority assets visible for follow-up.</p>
+            </div>
+          </div>
 
-          <div class="mv-al-created">
-            {% if alert.is_triggered %}
-              <div class="mv-al-status-row">
-                <span class="mv-chip triggered">TRIGGERED</span>
-              </div>
-            {% else %}
-              <div class="mv-al-status-row">
-                <span class="mv-chip info">PENDING</span>
-              </div>
-            {% endif %}
-            <div data-relative-time="{{ alert.created_at|date:'c' }}">
-              {{ alert.created_at|timesince }} ago
+          <div class="mv-alert-workflow-step">
+            <span>04</span>
+            <div>
+              <strong>Review discipline</strong>
+              <p>
+                Together these surfaces support analyst-facing monitoring without
+                claiming live cross-app execution.
+              </p>
             </div>
           </div>
         </div>
-        {% endfor %}
-      {% else %}
-        <div class="mv-al-empty">
-          <div class="mv-al-empty-icon">◌</div>
-          <div class="mv-al-empty-title">No alerts have been created yet.</div>
-          <a href="{% url 'monitoring:create_alert' %}" class="mv-btn-solid">
-            Create your first alert
-          </a>
-        </div>
-      {% endif %}
-    </section>
-
-    <div class="mv-al-side">
-      <section class="mv-card mv-al-side-block">
-        <div class="mv-al-card-title mv-al-side-title">How alerts fit the workflow</div>
-        <div class="mv-al-list">
-          <div>• Alerts monitor specific threshold conditions on chosen assets.</div>
-          <div>• Signals explain broader market behaviour and elevated conditions.</div>
-          <div>• Watchlist items keep high-priority assets visible at all times.</div>
-          <div>• Together these surfaces make MarketVista an analyst-facing monitoring layer.</div>
-        </div>
       </section>
 
-      <section class="mv-card mv-al-side-block">
-        <div class="mv-al-card-title mv-al-side-title">Suggested next moves</div>
-        <div class="mv-al-actions">
-          <a href="{% url 'monitoring:dashboard' %}" class="mv-btn mv-al-btn-cyan">
-            Return to Dashboard
-          </a>
+      <section class="mv-card mv-al-next">
+        <div class="mv-al-card-title">Suggested next moves</div>
 
-          <a href="{% url 'monitoring:signals' %}" class="mv-btn mv-al-btn-amber">
-            Review Signals
-          </a>
+        <a href="{% url 'monitoring:dashboard' %}" class="mv-btn">
+          Return to Dashboard
+        </a>
 
-          <a href="{% url 'monitoring:create_alert' %}" class="mv-btn mv-al-btn-light">
-            Create Another Alert
-          </a>
-        </div>
+        <a href="{% url 'monitoring:signals' %}" class="mv-btn warning">
+          Review Signals
+        </a>
+
+        <a href="{% url 'monitoring:create_alert' %}" class="mv-btn">
+          Create Another Alert
+        </a>
       </section>
-    </div>
+    </aside>
   </div>
+
+  <section class="mv-footer-cta mv-alerts-handoff">
+    <div class="mv-fc-left">
+      <div class="mv-fc-eye">Planned suite handoff</div>
+      <div class="mv-fc-txt">
+        Triggered and pending alerts support asset review before planned RiskWise scenario preparation.
+      </div>
+    </div>
+
+    <span
+      class="mv-btn is-disabled"
+      aria-disabled="true"
+      title="RiskWise is a planned suite handoff and is not active in this demo."
+    >
+      RiskWise handoff planned →
+    </span>
+  </section>
 
 </div>
 {% endblock %}

@@ -1,5 +1,19 @@
 # MarketVista Dashboard — Screenshot Shortlist
 
+## Purpose
+
+This file defines the final screenshot pack for GitHub, README presentation, and portfolio review.
+
+The screenshots should prove that **MarketVista Dashboard** is a premium, monitoring-first analyst console inside the four-project FinTech workflow:
+
+```text
+DataBridge Market API → MarketVista Dashboard → RiskWise Planner → TradeIntel 360
+```
+
+MarketVista should be shown as the **monitoring and analyst-visibility layer**, not as a live ingestion platform, broker integration, trading bot, risk calculator, or post-trade analytics system.
+
+---
+
 ## Screenshot directory
 
 Store all final images in:
@@ -10,170 +24,323 @@ docs/screenshots/
 
 ---
 
-## Final screenshot set
+## Final README screenshot set
 
-### 1. Full dashboard — hero, signals, and monitoring command surface
+Use these 10 screenshots in the main README gallery.
+
+### 1. Home — command entry surface
+
 **Filename**
+
 ```text
-00_dashboard_full_hero_and_signals.png
+01_home_command_entry.png
 ```
 
 **What to show**
-- suite breadcrumb
-- hero section
-- snapshot freshness
-- KPI cards
+
+- MarketVista branding
+- sidebar navigation
+- seeded demo status
+- main `MarketVista Dashboard` hero
+- Command Entry panel
+- planned suite flow wording
+
+**What it proves**
+
+- product identity is clear
+- reviewer can understand the product quickly
+- seeded/demo state is labelled honestly
+- MarketVista is positioned as one layer in the wider FinTech suite
+
+---
+
+### 2. Dashboard — monitoring command surface
+
+**Filename**
+
+```text
+02_dashboard_command_surface.png
+```
+
+**What to show**
+
+- monitoring command hero
+- data mode
+- signal state
+- latest context
+- tracked assets
+- active alerts
+- active signals
+- top movers
 - latest signals
-- operational status
 - watchlist quick view
+- triggered alerts
+- planned suite handoff footer
 
 **What it proves**
-- monitoring-first identity
-- signal workflow
-- freshness awareness
-- top mover and watchlist prioritization
+
+- main monitoring workflow is visible in one place
+- dashboard summarises stored snapshot, signal, watchlist, and alert state
+- page acts as an analyst command surface, not a generic dashboard
 
 ---
 
-### 2. Dashboard charts
+### 3. Signals — signal review surface
+
 **Filename**
+
 ```text
-01_dashboard_charts.png
+03_signals_review_surface.png
 ```
 
 **What to show**
-- Market Controls
-- Line Price History Chart
-- Candlestick Chart
+
+- Active monitoring signals hero
+- total active signals
+- seeded demo data mode
+- Elevated / Watchlist / Info cards
+- Elevated monitoring state panel
+- active signal rows with methodology text and metric values
 
 **What it proves**
-- OHLC-backed charting
-- date-range-driven analyst inspection
-- historical monitoring support
+
+- signals are grouped by severity
+- signal rows show analytical evidence
+- elevated signals are review prompts, not trade instructions
+- product keeps system-generated signals separate from user-defined alerts
 
 ---
 
-### 3. Dashboard tables
+### 4. Asset Detail — ETH/USD inspection surface
+
 **Filename**
+
 ```text
-02_dashboard_tables.png
+04_asset_detail_eth_usd.png
 ```
 
 **What to show**
-- Live Price Table
-- Recent OHLC Candles table
-- filter controls
-- pagination
+
+- ETH/USD asset inspection hero
+- current price
+- 3-day move
+- signal state
+- watchlist badge
+- asset alert count
+- Analyst Workflow panel
+- 1D stored-history chart
 
 **What it proves**
-- latest snapshot inspection
-- historical OHLC inspection
-- tabular monitoring surfaces, not just charts
+
+- one asset can be inspected in context
+- asset detail combines price, signal, watchlist, alert, and chart evidence
+- page prepares context for planned RiskWise handoff without claiming live integration
 
 ---
 
-### 4. Operational status and watchlist
+### 5. Asset Detail — sparse intraday handling
+
 **Filename**
+
 ```text
-03_dashboard_operational_and_watchlist.png
+05_asset_detail_sparse_intraday.png
 ```
 
 **What to show**
-- Operational Status panel
-- Top Mover
-- Watchlist Quick View
+
+- 1H or 4H selected range
+- labelled sparse sample marker
+- limited intraday density notice
+- `Why this matters`
+- `Best use`
 
 **What it proves**
-- analyst prioritization logic
-- tracked asset focus
-- decision-support orientation
+
+- sparse data is handled honestly
+- the chart does not pretend to show dense real-time intraday coverage
+- the product prioritises data integrity over visual overclaiming
 
 ---
 
-### 5. Admin monitoring index
+### 6. Watchlist — priority monitoring surface
+
 **Filename**
+
 ```text
-04_admin_monitoring_index.png
+06_watchlist_command_view.png
 ```
 
 **What to show**
-- Django admin homepage
-- monitoring model group only
+
+- Watchlist command view hero
+- tracked assets count
+- elevated-on-watchlist count
+- active alerts count
+- search/filter controls
+- tracked asset registry
+- export-ready monitoring
+- planned suite handoff footer
 
 **What it proves**
-- clean admin/data layer
-- reviewer inspectability
-- not just a styled frontend
+
+- priority assets are kept visible
+- watchlist state works as part of the analyst workflow
+- watchlist supports alert review and planned risk preparation
 
 ---
 
-### 6. Admin market signals
+### 7. Alerts — alert review console
+
 **Filename**
+
 ```text
-05_admin_market_signals.png
+07_alert_review_console.png
 ```
 
 **What to show**
-- Market signals list page
-- asset
-- signal type
-- severity
-- is_active
-- timestamp
-- filter sidebar
+
+- Alert review console hero
+- total alerts
+- triggered alerts
+- pending alerts
+- alert rows count
+- alert registry
+- workflow explanation
+- suggested next moves
+- planned RiskWise handoff footer
 
 **What it proves**
-- computed signals are persisted
-- severity is inspectable
-- signal engine is visible beyond dashboard UI
+
+- user-defined threshold alerts are reviewable
+- pending and triggered alerts are separated clearly
+- alert counts and table status should be mathematically consistent
+- alerts pair with signal and watchlist context
+
+**Required consistency rule**
+
+Before capturing this screenshot, verify:
+
+```text
+Total Alerts = Triggered + Pending = Alert Rows
+```
 
 ---
 
-### 7. Admin price OHLC
+### 8. Create Alert — threshold setup surface
+
 **Filename**
+
 ```text
-06_admin_price_ohlc.png
+08_create_alert_threshold_setup.png
 ```
 
 **What to show**
-- Price OHLC list page
-- multiple rows
-- open/high/low/close/volume/source
-- filter sidebar
+
+- Create price alert hero
+- what-this-does panel
+- workflow metadata
+- asset select field
+- direction selector
+- target price field
+- threshold guidance
+- pre-submit review
+- monitoring fit panel
 
 **What it proves**
-- historical price structure is stored
-- charting and signal logic are backed by real rows
+
+- user can convert an asset condition into a reviewable alert trigger
+- alert creation supports monitoring workflow discipline
+- form copy is product-aware, not generic CRUD
 
 ---
 
-### 8. Admin price snapshots
+### 9. Asset Browser — monitored asset universe
+
 **Filename**
+
 ```text
-07_admin_price_snapshots.png
+09_asset_browser.png
 ```
 
 **What to show**
-- Price snapshots list page
-- latest price rows
-- timestamps
-- filter sidebar
+
+- monitored asset universe
+- crypto / FX / index / commodity examples
+- current prices
+- 3-day moves
+- signal badges
+- watchlist controls
+- asset detail links
 
 **What it proves**
-- freshness layer is backed by persisted snapshots
-- live table values come from stored snapshot records
+
+- MarketVista covers multiple asset classes in the demo state
+- asset cards route users into asset-level inspection
+- watched and elevated assets are visible from the browsing layer
+
+---
+
+### 10. Django Admin — monitoring model inspectability
+
+**Filename**
+
+```text
+10_admin_monitoring_models.png
+```
+
+**What to show**
+
+- Django administration page
+- Monitoring model group
+- Alerts
+- Assets
+- Market signals
+- Price OHLCs
+- Price snapshots
+- Watchlist items
+
+**What it proves**
+
+- this is not just a styled frontend
+- backend monitoring models are inspectable
+- persisted data structures support the UI
+
+---
+
+## Optional proof screenshots
+
+Keep these in `docs/screenshots/`, but do not use them in the main README unless you want a longer gallery.
+
+### Home — reviewer proof section
+
+```text
+01b_home_reviewer_proof.png
+```
+
+Use this to show the lower Home-page proof area: core surfaces, admin inspectability, monitoring priorities, suite handoff, and reviewer-ready product proof.
+
+### Asset Detail — workflow context
+
+```text
+04b_asset_detail_workflow_context.png
+```
+
+Use this to show the lower Asset Detail section: signal history, active alerts, and planned RiskWise handoff.
 
 ---
 
 ## Capture rules
 
-- use dark mode
-- keep browser zoom at 100%
-- keep a consistent browser width
-- prefer section-by-section screenshots over one long stitched image
-- keep filters and pagination in intentional states
-- avoid duplicate sticky navbars in long captures
-- use seeded demo data before capture
+- Use the final seeded demo state.
+- Use dark mode.
+- Keep browser zoom consistent, preferably `80%` or `90%` for wide SaaS screenshots.
+- Capture wide screenshots where possible.
+- Avoid active input cursors/carets unless demonstrating search or form entry.
+- Avoid accidental text selection.
+- Avoid duplicated sticky navbars in long captures.
+- Prefer focused screenshots over full-page stitched screenshots.
+- Keep the image readable inside GitHub.
+- Retake screenshots if count values are inconsistent or misleading.
 
 ---
 
@@ -185,15 +352,48 @@ python manage.py seed_demo_data
 python manage.py runserver
 ```
 
+Optional validation before capture:
+
+```bash
+python manage.py check
+python manage.py test
+```
+
 ---
 
 ## Best capture order
 
-1. `00_dashboard_full_hero_and_signals.png`
-2. `03_dashboard_operational_and_watchlist.png`
-3. `01_dashboard_charts.png`
-4. `02_dashboard_tables.png`
-5. `04_admin_monitoring_index.png`
-6. `05_admin_market_signals.png`
-7. `06_admin_price_ohlc.png`
-8. `07_admin_price_snapshots.png`
+```text
+01_home_command_entry.png
+02_dashboard_command_surface.png
+03_signals_review_surface.png
+04_asset_detail_eth_usd.png
+05_asset_detail_sparse_intraday.png
+06_watchlist_command_view.png
+07_alert_review_console.png
+08_create_alert_threshold_setup.png
+09_asset_browser.png
+10_admin_monitoring_models.png
+```
+
+---
+
+## Final screenshot QA
+
+Before pushing to GitHub, confirm:
+
+- [ ] all screenshot filenames match the README exactly
+- [ ] all screenshots are stored in `docs/screenshots/`
+- [ ] screenshots load inside GitHub preview
+- [ ] Alerts page satisfies `Total Alerts = Triggered + Pending = Alert Rows`
+- [ ] no screenshot says live DataBridge, live RiskWise, or live TradeIntel integration
+- [ ] sparse intraday screenshot clearly explains limited data density
+- [ ] optional screenshots are not required in the main README gallery
+
+---
+
+## Final status
+
+```text
+Screenshot pack is ready when the 10 main screenshots load correctly in README.md.
+```

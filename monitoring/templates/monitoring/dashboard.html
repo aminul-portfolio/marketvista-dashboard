@@ -12,49 +12,99 @@
 
 {% block topbar_right %}
   {% if freshness_signal %}
-    {% if freshness_signal.delay_minutes is not None %}
-      <span class="mv-freshness {% if freshness_signal.delay_minutes <= 5 %}is-fresh{% elif freshness_signal.delay_minutes <= 60 %}is-delayed{% else %}is-stale{% endif %}">
-        {{ freshness_signal.label }}
-        {% if freshness_signal.delay_minutes <= 0 %}
-          · Just now
-        {% else %}
-          · {{ freshness_signal.delay_minutes }} min ago
-        {% endif %}
-      </span>
-    {% else %}
-      <span class="mv-freshness">No market data loaded</span>
+    {% if freshness_signal.show_live_pulse %}
+      <div class="mv-pulse-wrap">
+        <div class="mv-pulse-dot"></div>
+        <span class="mv-pulse-txt">Live</span>
+      </div>
     {% endif %}
+
+    <span class="mv-freshness {% if freshness_signal.status == 'fresh' or freshness_signal.status == 'demo' %}is-fresh{% elif freshness_signal.status == 'delayed' %}is-delayed{% elif freshness_signal.status == 'stale' %}is-stale{% endif %}">
+      {{ freshness_signal.label }}
+      {% if freshness_signal.age_text %}
+        · {{ freshness_signal.age_text }}
+      {% endif %}
+    </span>
   {% else %}
     <span class="mv-freshness">Monitoring dashboard</span>
   {% endif %}
 {% endblock %}
 
 {% block attr_strip %}
-<div class="mv-attr-strip">
+<div class="mv-attr-strip mv-attr-strip-premium">
   <div class="mv-attr-left">
     <div class="mv-attr-dot"></div>
     <span class="mv-attr-txt">
-      Monitoring data powered by
-      <a class="mv-attr-link" href="#">DataBridge Market API</a>
+      Reviewer-ready seeded dataset · Future upstream:
+      <span class="mv-attr-link">DataBridge Market API</span>
     </span>
   </div>
-  <span class="mv-attr-right">Snapshots · signals · watchlists · alerts</span>
+  <span class="mv-attr-right">Stored snapshots · Seeded signals · Watchlist context · Alert review</span>
 </div>
 {% endblock %}
 
 {% block page_content %}
 <div class="mv-dashboard">
 
-  <section class="mv-dashboard-kpis">
-    <div class="mv-kpi-card">
-      <div class="mv-kpi-label">Assets Tracked</div>
-      <div class="mv-kpi-value">{{ tracked_assets_count }}</div>
-      <div class="mv-kpi-context">Monitored assets with current data</div>
+  <section class="mv-dashboard-hero" aria-label="Dashboard command summary">
+    <div class="mv-dashboard-hero-main">
+      <div class="mv-dashboard-eyebrow">Monitoring command surface</div>
+      <h1 class="mv-dashboard-title">Reviewer-ready market monitoring console</h1>
+      <p class="mv-dashboard-copy">
+        Use this surface to review stored snapshot coverage, active signal pressure, alert state,
+        and watchlist context before moving important conditions into planned deeper analysis.
+      </p>
+
+      <div class="mv-dashboard-proof-row" aria-label="Dashboard proof points">
+        <span>Stored snapshot data</span>
+        <span>Signal-aware review</span>
+        <span>Watchlist context</span>
+        <span>Planned suite handoff</span>
+      </div>
     </div>
 
+    <aside class="mv-dashboard-hero-side" aria-label="Data mode summary">
+      <div class="mv-dashboard-mode-card">
+        <span>Data mode</span>
+        <strong>
+          {% if freshness_signal and freshness_signal.is_demo %}
+            Seeded demo
+          {% elif freshness_signal %}
+            Stored market data
+          {% else %}
+            Not loaded
+          {% endif %}
+        </strong>
+      </div>
+
+      <div class="mv-dashboard-mode-card">
+        <span>Signal state</span>
+        <strong>{{ active_signals_count|default:0 }} active</strong>
+      </div>
+
+      <div class="mv-dashboard-mode-card">
+        <span>Latest context</span>
+        <strong>
+          {% if freshness_signal and freshness_signal.last_updated_display %}
+            {{ freshness_signal.last_updated_display }}
+          {% else %}
+            Awaiting data
+          {% endif %}
+        </strong>
+      </div>
+    </aside>
+  </section>
+
+  <section class="mv-dashboard-kpis" aria-label="Dashboard key metrics">
     <div class="mv-kpi-card">
+      <div class="mv-kpi-label">Assets Tracked</div>
+      <div class="mv-kpi-value">{{ tracked_assets_count|default:0 }}</div>
+      <div class="mv-kpi-context">Stored snapshot coverage</div>
+    </div>
+
+    <div class="mv-kpi-card is-warning">
       <div class="mv-kpi-label">Active Alerts</div>
-      <div class="mv-kpi-value" style="color:#f59e0b;">{{ active_alerts_count }}</div>
+      <div class="mv-kpi-value">{{ active_alerts_count|default:0 }}</div>
       <div class="mv-kpi-context">
         {% if triggered_alerts_count %}
           {{ triggered_alerts_count }} triggered recently
@@ -64,13 +114,13 @@
       </div>
     </div>
 
-    <div class="mv-kpi-card">
-      <div class="mv-kpi-label">Signals Today</div>
-      <div class="mv-kpi-value">{{ signals_today_count }}</div>
-      <div class="mv-kpi-context">{{ elevated_signals_count }} elevated</div>
+    <div class="mv-kpi-card is-signal">
+      <div class="mv-kpi-label">Active Signals</div>
+      <div class="mv-kpi-value">{{ active_signals_count|default:0 }}</div>
+      <div class="mv-kpi-context">{{ elevated_signals_count|default:0 }} elevated</div>
     </div>
 
-    <div class="mv-kpi-card">
+    <div class="mv-kpi-card is-mover">
       <div class="mv-kpi-label">Top Mover Δ</div>
       <div class="mv-kpi-value">
         {% if top_mover %}
@@ -85,10 +135,13 @@
     </div>
   </section>
 
-  <section class="mv-dashboard-panels">
-    <div class="mv-card">
-      <div class="mv-card-hd">
-        <span class="mv-card-title">Top Movers</span>
+  <section class="mv-dashboard-grid mv-dashboard-grid-primary">
+    <div class="mv-card mv-dashboard-panel">
+      <div class="mv-card-hd mv-panel-hd">
+        <div>
+          <span class="mv-card-title">Top Movers</span>
+          <div class="mv-panel-subtitle">Largest stored short-window moves across tracked assets.</div>
+        </div>
         <a href="{% url 'monitoring:asset_list' %}" class="mv-card-link">All assets →</a>
       </div>
 
@@ -98,14 +151,14 @@
           <div class="mv-top-mover-row">
             <div class="mv-rank-pill">{{ forloop.counter }}</div>
 
-            <div>
+            <div class="mv-top-mover-asset">
               <div class="mv-top-mover-symbol">{{ mover.symbol }}</div>
               <div class="mv-top-mover-name">{{ mover.name }}</div>
             </div>
 
             <div class="mv-top-mover-price">
-              {% if mover.latest_price %}
-                {{ mover.latest_price }}
+              {% if mover.price %}
+                ${{ mover.price|floatformat:2 }}
               {% else %}
                 —
               {% endif %}
@@ -124,9 +177,12 @@
       {% endif %}
     </div>
 
-    <div class="mv-card">
-      <div class="mv-card-hd">
-        <span class="mv-card-title">Latest Signals</span>
+    <div class="mv-card mv-dashboard-panel">
+      <div class="mv-card-hd mv-panel-hd">
+        <div>
+          <span class="mv-card-title">Latest Signals</span>
+          <div class="mv-panel-subtitle">Most recent active monitoring events by severity.</div>
+        </div>
         <a href="{% url 'monitoring:signals' %}" class="mv-card-link">Signals →</a>
       </div>
 
@@ -138,7 +194,7 @@
               {{ signal.severity }}
             </span>
             <span class="mv-sig-type-badge">{{ signal.asset.symbol }}</span>
-            <span class="mv-sig-detail-msg">{{ signal.details|default:signal.title|truncatechars:70 }}</span>
+            <span class="mv-sig-detail-msg">{{ signal.details|default:signal.title|truncatechars:78 }}</span>
             <span class="mv-sig-ts" data-relative-time="{{ signal.signal_timestamp|date:'c' }}">
               {{ signal.signal_timestamp|timesince }} ago
             </span>
@@ -152,42 +208,50 @@
     </div>
   </section>
 
-  <section class="mv-dashboard-panels">
-    <div class="mv-card">
-      <div class="mv-card-hd">
-        <span class="mv-card-title">Watchlist Quick View</span>
-        <a href="{% url 'monitoring:watchlist' %}" class="mv-card-link">{{ watchlist_count }} tracked →</a>
+  <section class="mv-dashboard-grid mv-dashboard-grid-secondary">
+    <div class="mv-card mv-dashboard-panel">
+      <div class="mv-card-hd mv-panel-hd">
+        <div>
+          <span class="mv-card-title">Watchlist Quick View</span>
+          <div class="mv-panel-subtitle">Priority assets kept visible for analyst follow-up.</div>
+        </div>
+        <a href="{% url 'monitoring:watchlist' %}" class="mv-card-link">{{ watchlist_count|default:0 }} tracked →</a>
       </div>
 
       {% if watchlist_items %}
         <div class="mv-watchlist-quick-list">
           {% for item in watchlist_items %}
-          <div class="mv-alert-item">
-            <div class="mv-ai-row">
-              <span class="mv-ai-label">{{ item.asset.symbol }} — {{ item.asset.name }}</span>
-              <a href="{% url 'monitoring:asset_detail' item.asset.symbol %}" class="mv-sc-link">View →</a>
+          <div class="mv-watchlist-quick-row">
+            <div class="mv-watchlist-quick-main">
+              <div class="mv-watchlist-quick-symbol">{{ item.asset.symbol }} — {{ item.asset.name }}</div>
+              <div class="mv-watchlist-quick-note">
+                {% if item.note %}
+                  {{ item.note }}
+                {% else %}
+                  {{ item.asset.get_asset_type_display }} monitoring context
+                {% endif %}
+              </div>
             </div>
-            {% if item.note %}
-              <div class="mv-ai-detail">{{ item.note }}</div>
-            {% else %}
-              <div class="mv-ai-detail">{{ item.asset.get_asset_type_display }}</div>
-            {% endif %}
+            <a href="{% url 'monitoring:asset_detail' item.asset.symbol %}" class="mv-sc-link">View →</a>
           </div>
           {% endfor %}
         </div>
       {% else %}
         <div class="mv-empty">
           No watchlist items yet.
-          <div style="margin-top:8px;">
+          <div class="mv-empty-action">
             <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary">Browse assets →</a>
           </div>
         </div>
       {% endif %}
     </div>
 
-    <div class="mv-card">
-      <div class="mv-card-hd">
-        <span class="mv-card-title">Triggered Alerts</span>
+    <div class="mv-card mv-dashboard-panel">
+      <div class="mv-card-hd mv-panel-hd">
+        <div>
+          <span class="mv-card-title">Triggered Alerts</span>
+          <div class="mv-panel-subtitle">Threshold events requiring review or confirmation.</div>
+        </div>
         <a href="{% url 'monitoring:alert_list' %}" class="mv-card-link">Alerts →</a>
       </div>
 
@@ -213,15 +277,19 @@
     </div>
   </section>
 
-  <section class="mv-footer-cta">
-    <div class="mv-fc-left">
-      <div class="mv-fc-eye">FinTech Suite</div>
-      <div class="mv-fc-txt">
-        Once a position has been planned in RiskWise, review its outcome in TradeIntel 360.
-      </div>
+ <section class="mv-footer-cta mv-dashboard-handoff">
+  <div class="mv-fc-left">
+    <div class="mv-fc-eye">Planned suite handoff</div>
+    <div class="mv-fc-txt">
+      Elevated monitoring context can move into RiskWise planning and later TradeIntel outcome review.
+      This dashboard shows the monitoring layer only.
     </div>
-    <a href="#" class="mv-btn">Review trade outcomes in TradeIntel 360 →</a>
-  </section>
+  </div>
+
+  <span class="mv-btn is-disabled" aria-disabled="true">
+    Planned TradeIntel handoff →
+  </span>
+</section>
 
 </div>
 {% endblock %}

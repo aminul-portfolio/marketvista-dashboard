@@ -10,13 +10,18 @@
 {% endblock %}
 
 {% block topbar_right %}
-  {% if freshness_signal and freshness_signal.delay_minutes is not None %}
-    <span class="mv-freshness {% if freshness_signal.delay_minutes <= 5 %}is-fresh{% elif freshness_signal.delay_minutes <= 60 %}is-delayed{% else %}is-stale{% endif %}">
+  {% if freshness_signal %}
+    {% if freshness_signal.show_live_pulse %}
+      <div class="mv-pulse-wrap">
+        <div class="mv-pulse-dot"></div>
+        <span class="mv-pulse-txt">Live</span>
+      </div>
+    {% endif %}
+
+    <span class="mv-freshness {% if freshness_signal.status == 'fresh' or freshness_signal.status == 'demo' %}is-fresh{% elif freshness_signal.status == 'delayed' %}is-delayed{% elif freshness_signal.status == 'stale' %}is-stale{% endif %}">
       {{ freshness_signal.label }}
-      {% if freshness_signal.delay_minutes <= 0 %}
-        · Just now
-      {% else %}
-        · {{ freshness_signal.delay_minutes }} min ago
+      {% if freshness_signal.age_text %}
+        · {{ freshness_signal.age_text }}
       {% endif %}
     </span>
   {% else %}
@@ -25,121 +30,175 @@
 {% endblock %}
 
 {% block attr_strip %}
-<div class="mv-attr-strip">
+<div class="mv-attr-strip mv-attr-strip-premium">
   <div class="mv-attr-left">
     <div class="mv-attr-dot"></div>
-    <span class="mv-attr-txt">DataBridge → MarketVista → RiskWise → TradeIntel</span>
+    <span class="mv-attr-txt">Planned suite flow: DataBridge → MarketVista → RiskWise → TradeIntel</span>
   </div>
-  <span class="mv-attr-right">Monitoring layer for signal discovery, alert review, and routing to deeper analysis.</span>
+  <span class="mv-attr-right">Current repo uses reviewer-ready seeded monitoring data.</span>
 </div>
 {% endblock %}
 
 {% block page_content %}
 <div class="mv-home-page">
 
-  <div class="mv-home-hero">
-    <section class="mv-card">
-      <div class="mv-home-eyebrow">Monitoring-first landing surface</div>
+  <section class="mv-home-hero">
+    <div class="mv-home-hero-main mv-card">
+      <div class="mv-home-eyebrow">Monitoring-first SaaS command surface</div>
 
-      <h1 class="mv-home-title">MarketVista Dashboard</h1>
+      <h1 class="mv-home-title">
+        MarketVista
+        <span class="mv-home-title-accent">Dashboard</span>
+      </h1>
 
       <p class="mv-home-subtitle">
-        MarketVista is the monitoring layer in your four-project fintech workflow. Review freshness, surface elevated signals, inspect watchlist assets, and route important conditions into deeper analysis.
+        A premium monitoring and analyst-visibility layer for your four-project fintech workflow.
+        Review freshness, surface elevated signals, inspect watchlist assets, and prepare important
+        market conditions for deeper planning handoff.
       </p>
 
       <div class="mv-home-chip-row">
-        <span>◉ Connected to your suite workflow</span>
-        <span>◉ Alert-aware monitoring</span>
-        <span>◉ OHLC-backed dashboard</span>
+        <span>Mapped to your suite workflow</span>
+        <span>Signal-aware monitoring</span>
+        <span>OHLC-backed dashboards</span>
+        <span>Reviewer-ready architecture</span>
       </div>
 
-      <div class="mv-home-mini-grid">
-        <div class="mv-home-mini-card">
-          <div class="mv-home-mini-title">Product role</div>
-          <div class="mv-home-mini-copy">
-            Monitoring + analyst visibility
-            <br><br>
-            Use MarketVista to identify what changed, what is elevated, what is delayed, and which assets deserve deeper review.
+      <div class="mv-home-hero-actions">
+        <a href="{% url 'monitoring:dashboard' %}" class="mv-btn-solid mv-home-primary-btn">
+          Open Monitoring Dashboard
+        </a>
+        <a href="{% url 'monitoring:signals' %}" class="mv-btn mv-home-secondary-btn">
+          Review Signals
+        </a>
+      </div>
+
+      <div class="mv-home-proof-grid">
+        <div class="mv-home-proof-card">
+          <div class="mv-home-proof-label">Core role</div>
+          <div class="mv-home-proof-value">Monitoring + analyst visibility</div>
+          <div class="mv-home-proof-copy">
+            Use MarketVista to identify what changed, what is elevated, and which asset deserves deeper review.
           </div>
         </div>
 
-        <div class="mv-home-mini-card">
-          <div class="mv-home-mini-title">What this app answers</div>
-          <div class="mv-home-mini-copy">
-            What changed? <strong>Signals</strong><br>
-            Can I trust the data? <strong>Freshness</strong><br>
-            What needs attention? <strong>Watchlist</strong><br>
-            Where do I inspect? <strong>Charts + tables</strong>
-          </div>
-
-          <div class="mv-home-cta-row">
-            <a href="{% url 'monitoring:dashboard' %}" class="mv-btn-solid mv-home-full-btn">
-              Open Monitoring Dashboard
-            </a>
+        <div class="mv-home-proof-card">
+          <div class="mv-home-proof-label">What this app answers</div>
+          <div class="mv-home-proof-list">
+            <div><strong>What changed?</strong> Signals</div>
+            <div><strong>Can I trust it?</strong> Freshness</div>
+            <div><strong>What matters now?</strong> Watchlist</div>
+            <div><strong>Where do I inspect?</strong> Charts + tables</div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section class="mv-card">
-      <div class="mv-home-section-title">Quick access</div>
-
-      <div class="mv-home-quick-grid">
-        <div class="mv-home-quick-card">
-          <h3 class="mv-home-quick-title">Dashboard</h3>
-          <p class="mv-home-quick-copy">
-            Review signals, freshness, charts, price tables, and monitoring context.
-          </p>
-          <a href="{% url 'monitoring:dashboard' %}" class="mv-btn mv-home-btn-cyan">
-            Open Dashboard
-          </a>
+    <aside class="mv-home-hero-side mv-card">
+      <div class="mv-home-side-head">
+        <div>
+          <div class="mv-home-section-title">Command entry</div>
+          <h2 class="mv-home-side-title">Operational access</h2>
         </div>
+        <span class="mv-home-status-pill">Demo workflow</span>
+      </div>
 
-        <div class="mv-home-quick-card">
-          <h3 class="mv-home-quick-title">Watchlist</h3>
-          <p class="mv-home-quick-copy">
-            Track key assets and monitor their signal status in one surface.
-          </p>
-          <a href="{% url 'monitoring:watchlist' %}" class="mv-btn mv-home-btn-cyan">
-            View Watchlist
-          </a>
-        </div>
+      <div class="mv-home-side-copy">
+        Move directly into the surfaces that matter most for monitoring, escalation, and reviewer proof.
+      </div>
 
-        <div class="mv-home-quick-card">
-          <h3 class="mv-home-quick-title">Signals</h3>
-          <p class="mv-home-quick-copy">
-            Review ELEVATED, WATCHLIST, and INFO signals across all tracked assets.
-          </p>
-          <a href="{% url 'monitoring:signals' %}" class="mv-btn mv-home-btn-amber">
-            View Signals
-          </a>
-        </div>
+      <div class="mv-home-side-grid">
+        <a href="{% url 'monitoring:dashboard' %}" class="mv-home-side-link">
+          <span class="mv-home-side-link-title">Dashboard</span>
+          <span class="mv-home-side-link-copy">Signals, freshness, charts, and operational context</span>
+        </a>
 
-        <div class="mv-home-quick-card">
-          <h3 class="mv-home-quick-title">Alerts</h3>
-          <p class="mv-home-quick-copy">
-            Review current user alerts and keep monitoring attention aligned with important conditions.
-          </p>
-          <a href="{% url 'monitoring:alert_list' %}" class="mv-btn mv-home-btn-light">
-            View Alerts
-          </a>
-        </div>
+        <a href="{% url 'monitoring:watchlist' %}" class="mv-home-side-link">
+          <span class="mv-home-side-link-title">Watchlist</span>
+          <span class="mv-home-side-link-copy">Priority assets and visibility workflow</span>
+        </a>
 
-        <div class="mv-home-quick-card full">
-          <h3 class="mv-home-quick-title">Create Alert</h3>
-          <p class="mv-home-quick-copy">
-            Add a price alert for a tracked asset and turn market conditions into an actionable trigger.
-          </p>
-          <a href="{% url 'monitoring:create_alert' %}" class="mv-btn mv-home-btn-amber">
-            Create Alert
-          </a>
+        <a href="{% url 'monitoring:signals' %}" class="mv-home-side-link">
+          <span class="mv-home-side-link-title">Signals</span>
+          <span class="mv-home-side-link-copy">Elevated, watchlist, and informational events</span>
+        </a>
+
+        <a href="{% url 'monitoring:alert_list' %}" class="mv-home-side-link">
+          <span class="mv-home-side-link-title">Alerts</span>
+          <span class="mv-home-side-link-copy">Threshold tracking and user-defined triggers</span>
+        </a>
+      </div>
+
+      <div class="mv-home-side-footer">
+        <div class="mv-home-side-footer-label">Suite flow</div>
+        <div class="mv-home-side-footer-copy">
+          DataBridge is the planned upstream source. MarketVista currently demonstrates monitoring with seeded data. RiskWise and TradeIntel are planned suite handoffs.
         </div>
       </div>
-    </section>
-  </div>
+    </aside>
+  </section>
 
-  <div class="mv-home-meta-grid">
-    <section class="mv-card">
+  <section class="mv-home-surfaces">
+    <div class="mv-home-surfaces-head">
+      <div>
+        <div class="mv-home-section-title">Core surfaces</div>
+        <h2 class="mv-home-block-title">Move through the product like a premium analyst console</h2>
+      </div>
+      <div class="mv-home-block-copy">
+        Each surface has a clear role in the monitoring workflow rather than acting as a disconnected page.
+      </div>
+    </div>
+
+    <div class="mv-home-quick-grid">
+      <div class="mv-home-quick-card">
+        <div class="mv-home-quick-kicker">Surface 01</div>
+        <h3 class="mv-home-quick-title">Dashboard</h3>
+        <p class="mv-home-quick-copy">
+          Review signals, freshness, charts, stored tables, and top monitoring context in one command surface.
+        </p>
+        <a href="{% url 'monitoring:dashboard' %}" class="mv-btn mv-home-btn-cyan">Open Dashboard</a>
+      </div>
+
+      <div class="mv-home-quick-card">
+        <div class="mv-home-quick-kicker">Surface 02</div>
+        <h3 class="mv-home-quick-title">Watchlist</h3>
+        <p class="mv-home-quick-copy">
+          Keep high-priority assets visible and aligned with your analyst workflow.
+        </p>
+        <a href="{% url 'monitoring:watchlist' %}" class="mv-btn mv-home-btn-cyan">View Watchlist</a>
+      </div>
+
+      <div class="mv-home-quick-card">
+        <div class="mv-home-quick-kicker">Surface 03</div>
+        <h3 class="mv-home-quick-title">Signals</h3>
+        <p class="mv-home-quick-copy">
+          Inspect ELEVATED, WATCHLIST, and INFO events across the monitored asset universe.
+        </p>
+        <a href="{% url 'monitoring:signals' %}" class="mv-btn mv-home-btn-amber">Review Signals</a>
+      </div>
+
+      <div class="mv-home-quick-card">
+        <div class="mv-home-quick-kicker">Surface 04</div>
+        <h3 class="mv-home-quick-title">Alerts</h3>
+        <p class="mv-home-quick-copy">
+          Review user-defined triggers and keep monitoring attention aligned with exact price conditions.
+        </p>
+        <a href="{% url 'monitoring:alert_list' %}" class="mv-btn mv-home-btn-light">View Alerts</a>
+      </div>
+
+      <div class="mv-home-quick-card full">
+        <div class="mv-home-quick-kicker">Surface 05</div>
+        <h3 class="mv-home-quick-title">Create Alert</h3>
+        <p class="mv-home-quick-copy">
+          Turn a tracked asset and threshold into an actionable monitoring trigger.
+        </p>
+        <a href="{% url 'monitoring:create_alert' %}" class="mv-btn mv-home-btn-amber">Create Alert</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="mv-home-meta-grid">
+    <div class="mv-card">
       <div class="mv-home-section-title">Admin monitoring tools</div>
       <div class="mv-home-body-copy">
         Open Django admin to inspect assets, alerts, market signals, price snapshots, OHLC history, and watchlist items.
@@ -147,39 +206,38 @@
 
       {% if user.is_staff %}
         <div class="mv-home-admin-row">
-          <a href="/admin/" class="mv-btn mv-home-btn-amber">
-            Open Admin Panel
-          </a>
+          <a href="/admin/" class="mv-btn mv-home-btn-amber">Open Admin Panel</a>
         </div>
       {% endif %}
-    </section>
+    </div>
 
-    <section class="mv-card">
+    <div class="mv-card">
       <div class="mv-home-section-title">Monitoring priorities</div>
       <div class="mv-home-list">
-        <div>• Surface elevated signals before deeper planning</div>
-        <div>• Show freshness so analysts can judge trust</div>
-        <div>• Keep watchlist items visible in one place</div>
-        <div>• Back charts and tables with stored OHLC and snapshot data</div>
+        <div>Surface elevated conditions before deeper planning</div>
+        <div>Show freshness so analysts can judge trust</div>
+        <div>Keep watchlist assets visible in one place</div>
+        <div>Back charts and tables with stored OHLC and snapshot data</div>
       </div>
-    </section>
+    </div>
 
-    <section class="mv-card">
+    <div class="mv-card">
       <div class="mv-home-section-title">Suite handoff</div>
       <div class="mv-home-suite-grid">
-        <div><span>Upstream</span>DataBridge Market API</div>
+        <div><span>Future upstream</span>DataBridge Market API</div>
         <div><span>This layer</span>MarketVista</div>
         <div><span>Next step</span>RiskWise Planner</div>
         <div><span>Outcome review</span>TradeIntel 360</div>
       </div>
-    </section>
-  </div>
+    </div>
+  </section>
 
-  <div class="mv-home-reviewer">
+  <section class="mv-home-reviewer">
     <div class="mv-home-reviewer-left">
-      <div class="mv-home-reviewer-eye">Reviewer-ready</div>
+      <div class="mv-home-reviewer-eye">Reviewer-ready product proof</div>
       <div class="mv-home-reviewer-copy">
-        This repo is packaged so a reviewer can inspect the dashboard, admin monitoring models, and seeded demo state quickly.
+        This repo is packaged so a reviewer can inspect the dashboard, admin monitoring models,
+        seeded demo state, and validation baseline quickly.
       </div>
     </div>
 
@@ -187,8 +245,9 @@
       <span>Seeded signals</span>
       <span>Admin inspectability</span>
       <span>Smoke tests</span>
+      <span>Service-layer architecture</span>
     </div>
-  </div>
+  </section>
 
 </div>
 {% endblock %}

@@ -14,152 +14,190 @@
 {% endblock %}
 
 {% block attr_strip %}
-<div class="mv-attr-strip">
+<div class="mv-attr-strip mv-attr-strip-premium">
   <div class="mv-attr-left">
     <div class="mv-attr-dot"></div>
-    <span class="mv-attr-txt">High-priority monitoring surface for tracked assets, severity context, and alert pairing.</span>
+    <span class="mv-attr-txt">Watchlist review · Severity context · Alert pairing · Planned handoff readiness</span>
   </div>
-  <span class="mv-attr-right">Watchlist review · signal visibility · export-ready monitoring</span>
+  <span class="mv-attr-right">Tracked assets · Signal visibility · Export-ready monitoring</span>
 </div>
 {% endblock %}
 
 {% block page_content %}
 <div class="mv-watchlist-page">
 
-  <section class="mv-watchlist-summary">
-    <div class="mv-sum-card">
-      <div class="mv-sum-eye">Assets on Watchlist</div>
-      <div class="mv-sum-val">{{ total_count }}</div>
-      <div class="mv-sum-sub">Across monitored asset classes</div>
+  <section class="mv-watchlist-hero">
+    <div>
+      <div class="mv-watchlist-eyebrow">Priority monitoring surface</div>
+      <h1 class="mv-watchlist-title">Watchlist command view</h1>
+      <p class="mv-watchlist-copy">
+        Keep high-priority assets visible, pair them with signal severity, and decide which assets deserve alert review or planned RiskWise preparation.
+      </p>
     </div>
 
-    <div class="mv-sum-card">
-      <div class="mv-sum-eye">Elevated Signals</div>
-      <div class="mv-sum-val elevated">{{ elevated_on_watchlist }}</div>
-      <div class="mv-sum-sub">Ready for RiskWise planning</div>
-    </div>
-
-    <div class="mv-sum-card">
-      <div class="mv-sum-eye">Active Alerts</div>
-      <div class="mv-sum-val watchlist">{{ active_alerts_count }}</div>
-      <div class="mv-sum-sub">User-defined thresholds</div>
+    <div class="mv-watchlist-hero-meta">
+      <div>
+        <span>Tracked assets</span>
+        <strong>{{ total_count }}</strong>
+      </div>
+      <div>
+        <span>Elevated on watchlist</span>
+        <strong>{{ elevated_on_watchlist }}</strong>
+      </div>
     </div>
   </section>
 
-  <section class="mv-toolbar">
+  <section class="mv-watchlist-summary" aria-label="Watchlist summary">
+    <div class="mv-wl-summary-card">
+      <div class="mv-wl-summary-label">Assets on watchlist</div>
+      <div class="mv-wl-summary-value">{{ total_count }}</div>
+      <div class="mv-wl-summary-copy">Across monitored asset classes</div>
+    </div>
+
+    <div class="mv-wl-summary-card elevated">
+      <div class="mv-wl-summary-label">Elevated signals</div>
+      <div class="mv-wl-summary-value">{{ elevated_on_watchlist }}</div>
+      <div class="mv-wl-summary-copy">Prepare for deeper review</div>
+    </div>
+
+    <div class="mv-wl-summary-card watchlist">
+      <div class="mv-wl-summary-label">Active alerts</div>
+      <div class="mv-wl-summary-value">{{ active_alerts_count }}</div>
+      <div class="mv-wl-summary-copy">User-defined thresholds</div>
+    </div>
+  </section>
+
+  <section class="mv-watchlist-toolbar" aria-label="Watchlist controls">
     <div class="mv-search-wrap">
       <input
         class="mv-search-input"
         id="watchlistSearch"
         data-watchlist-search
-        placeholder="Search watchlist…"
+        placeholder="Search watchlist by asset, symbol, severity…"
       >
     </div>
 
+    <select class="mv-watchlist-select" id="watchlistSeverityFilter" data-watchlist-severity aria-label="Filter watchlist by severity">
+      <option value="">All severity states</option>
+      <option value="elevated">Elevated</option>
+      <option value="watchlist">Watchlist</option>
+      <option value="info">Info</option>
+      <option value="none">No signals</option>
+    </select>
+
     <div class="mv-tb-right-btns">
       <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary">+ Add asset</a>
-      <button type="button" class="mv-btn" id="watchlistExportBtn" data-watchlist-export>Export CSV</button>
+      <button type="button" class="mv-btn" id="watchlistExportBtn" data-watchlist-export>Export visible CSV</button>
     </div>
   </section>
 
   {% if watchlist_items %}
-    <div class="mv-watchlist-table-wrap">
-      <div class="mv-wl-table" id="wl-table">
-        <div class="mv-wl-thead">
-          <div class="mv-th">Asset</div>
-          <div class="mv-th">Latest Price</div>
-          <div class="mv-th">3-day move</div>
-          <div class="mv-th">Signals</div>
-          <div class="mv-th">Added</div>
-          <div class="mv-th"></div>
+    <section class="mv-card mv-watchlist-registry">
+      <div class="mv-watchlist-registry-head">
+        <div>
+          <div class="mv-watchlist-card-title">Tracked asset registry</div>
+          <div class="mv-watchlist-card-subtitle">Search, filter, and inspect watchlist assets before alert review or deeper planning.</div>
         </div>
+        <span class="mv-watchlist-visible"><span data-watchlist-visible-count>{{ total_count }}</span> visible</span>
+      </div>
 
-        {% for row in watchlist_items %}
-        <div
-          class="mv-wl-row"
-          data-name="{{ row.item.asset.name|lower }} {{ row.item.asset.symbol|lower }}"
-          data-severity="{{ row.badge_severity|lower }}"
-          data-priority="{{ row.badge_severity|lower }}"
-        >
-          <div class="mv-wr-asset">
-            <div class="mv-wr-icon {{ row.item.asset.asset_type }}">
-              {{ row.item.asset.symbol|slice:":2" }}
-            </div>
-            <div>
-              <div class="mv-wr-name">
-                {{ row.item.asset.name }}
-                <span class="mv-cls-chip">{{ row.item.asset.get_asset_type_display }}</span>
-              </div>
-              <div class="mv-wr-sym">{{ row.item.asset.symbol }}</div>
-            </div>
+      <div class="mv-watchlist-table-wrap">
+        <div class="mv-wl-table" id="wl-table">
+          <div class="mv-wl-thead">
+            <div class="mv-th">Asset</div>
+            <div class="mv-th">Latest price</div>
+            <div class="mv-th">3-day move</div>
+            <div class="mv-th">Signals</div>
+            <div class="mv-th">Added</div>
+            <div class="mv-th"></div>
           </div>
 
-          <div class="mv-wr-price">
-            {% if row.latest_price %}
-              ${{ row.latest_price.price|floatformat:2 }}
-            {% else %}
-              <span class="mv-muted">—</span>
-            {% endif %}
-          </div>
-
-          {% if row.pct_move or row.pct_move == 0 %}
-            <div class="mv-wr-chg {% if row.pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
-              {% if row.pct_move >= 0 %}+{% endif %}{{ row.pct_move|floatformat:2 }}%
-            </div>
-          {% else %}
-            <div class="mv-wr-chg">
-              <span class="mv-muted">—</span>
-            </div>
-          {% endif %}
-
-          <div class="mv-sig-badge">
-            <div class="mv-sb-dot" style="background:{{ row.badge_color }};"></div>
-            <span class="mv-sb-n">{{ row.badge_text }}</span>
-          </div>
-
-          <div class="mv-watchlist-added">
-            {{ row.item.created_at|date:"d M" }}
-          </div>
-
-          <div class="mv-wr-actions">
-            <a href="{% url 'monitoring:asset_detail' row.item.asset.symbol %}" class="mv-view-link">View →</a>
-            <form
-              method="post"
-              action="{% url 'monitoring:watchlist_remove' row.item.asset.symbol %}"
-              data-watchlist-remove-form
+          {% for row in watchlist_items %}
+            <div
+              class="mv-wl-row {{ row.badge_severity|lower }}"
+              data-name="{{ row.item.asset.name|lower }} {{ row.item.asset.symbol|lower }} {{ row.badge_text|lower }}"
+              data-severity="{{ row.badge_severity|lower }}"
+              data-priority="{{ row.badge_severity|lower }}"
             >
-              {% csrf_token %}
-              <button type="submit" class="mv-remove-btn" title="Remove from watchlist">✕</button>
-            </form>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
+              <div class="mv-wr-asset">
+                <div class="mv-wr-icon {{ row.item.asset.asset_type }}">{{ row.item.asset.symbol|slice:":2" }}</div>
+                <div>
+                  <div class="mv-wr-name">
+                    {{ row.item.asset.name }}
+                    <span class="mv-cls-chip">{{ row.item.asset.get_asset_type_display }}</span>
+                  </div>
+                  <div class="mv-wr-sym">{{ row.item.asset.symbol }}</div>
+                </div>
+              </div>
 
-    <div class="mv-watchlist-no-results" data-watchlist-no-results hidden>
-      No watchlist items match your current filters.
-    </div>
+              <div class="mv-wr-price">
+                {% if row.latest_price %}${{ row.latest_price.price|floatformat:2 }}{% else %}<span class="mv-muted">—</span>{% endif %}
+              </div>
+
+              {% if row.pct_move or row.pct_move == 0 %}
+                <div class="mv-wr-chg {% if row.pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
+                  {% if row.pct_move >= 0 %}+{% endif %}{{ row.pct_move|floatformat:2 }}%
+                </div>
+              {% else %}
+                <div class="mv-wr-chg"><span class="mv-muted">—</span></div>
+              {% endif %}
+
+              <div class="mv-sig-badge {{ row.badge_severity|lower }}">
+                <div class="mv-sb-dot"></div>
+                <span class="mv-sb-n">{{ row.badge_text }}</span>
+              </div>
+
+              <div class="mv-watchlist-added">{{ row.item.created_at|date:"d M" }}</div>
+
+              <div class="mv-wr-actions">
+                <a href="{% url 'monitoring:asset_detail' row.item.asset.symbol %}" class="mv-view-link">View →</a>
+                <form method="post" action="{% url 'monitoring:watchlist_remove' row.item.asset.symbol %}" data-watchlist-remove-form>
+                  {% csrf_token %}
+                  <button type="submit" class="mv-remove-btn" title="Remove from watchlist">✕</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="mv-watchlist-no-results" data-watchlist-no-results hidden>
+        No watchlist items match your current filters.
+      </div>
+    </section>
   {% else %}
-    <div class="mv-empty mv-watchlist-empty">
-      <div class="mv-watchlist-empty-title">No assets on your watchlist yet.</div>
-      <div class="mv-watchlist-note">
-        Add assets from the asset browser to keep them visible in your monitoring workflow.
+    <section class="mv-card mv-watchlist-empty">
+      <div>
+        <div class="mv-watchlist-empty-title">No assets on your watchlist yet.</div>
+        <div class="mv-watchlist-note">Add assets from the asset browser to keep them visible in your monitoring workflow.</div>
+        <div class="mv-watchlist-empty-actions">
+          <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary">Browse assets →</a>
+        </div>
       </div>
-      <div class="mv-home-cta-row">
-        <a href="{% url 'monitoring:asset_list' %}" class="mv-btn primary">Browse assets →</a>
-      </div>
-    </div>
+    </section>
   {% endif %}
 
   {% if watchlist_items %}
-    <div class="mv-export-row">
-      <span class="mv-export-txt">
-        Showing <span data-watchlist-visible-count>{{ total_count }}</span> asset{{ total_count|pluralize }} for analyst review or offline planning
-      </span>
+    <section class="mv-watchlist-footer">
+      <div>
+        <div class="mv-watchlist-footer-eye">Analyst export</div>
+        <div class="mv-watchlist-footer-copy">
+          Showing {{ total_count }} asset{{ total_count|pluralize }} for analyst review or offline planning.
+        </div>
+      </div>
       <a href="{% url 'monitoring:export_prices_csv' %}" class="mv-btn">Download price CSV</a>
-    </div>
+    </section>
   {% endif %}
+
+  <section class="mv-watchlist-handoff">
+    <div>
+      <div class="mv-watchlist-footer-eye">Planned Suite Handoff</div>
+      <div class="mv-watchlist-footer-copy">
+        Watchlist assets keep important markets visible before alert review, asset inspection, or planned RiskWise scenario preparation.
+      </div>
+    </div>
+    <span class="mv-btn" aria-disabled="true">RiskWise handoff planned →</span>
+  </section>
 
 </div>
 {% endblock %}
@@ -167,3 +205,4 @@
 {% block extra_js %}
 <script src="{% static 'js/watchlist.js' %}"></script>
 {% endblock %}
+

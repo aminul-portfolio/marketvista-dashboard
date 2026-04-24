@@ -1,16 +1,17 @@
-Django
-python-dotenv
-dj-database-url
-whitenoise
-gunicorn
+Django>=5.2,<5.3
+python-dotenv>=1.0,<2.0
+dj-database-url>=2.0,<3.0
+whitenoise>=6.0,<7.0
+gunicorn>=21.0,<24.0
 
-django-crispy-forms
-crispy-bootstrap5
-django-widget-tweaks
+django-crispy-forms>=2.0,<3.0
+crispy-bootstrap5>=2024.0,<2026.0
+django-widget-tweaks>=1.5,<2.0
 
-pandas
-matplotlib
-XlsxWriter
+pandas>=2.2,<3.0
+numpy>=1.26,<3.0
+matplotlib>=3.8,<4.0
+XlsxWriter>=3.2,<4.0
 
-celery
-redis
+celery>=5.3,<6.0
+redis>=5.0,<6.0

@@ -1,3 +1,5 @@
+"""Alert services for threshold review, summaries, and notifications."""
+
 import logging
 from decimal import Decimal, InvalidOperation
 
@@ -10,37 +12,167 @@ from ..models import Alert
 logger = logging.getLogger(__name__)
 
 
+def _normalize_decimal(value):
+    """
+    Convert any incoming numeric value into Decimal safely.
+    """
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return None
+
+
+def _should_trigger(alert, price: Decimal) -> bool:
+    """
+    Decide whether a specific alert should trigger against a normalized price.
+    """
+    if price is None:
+        return False
+
+    if alert.direction == "above":
+        return price >= alert.target_price
+
+    if alert.direction == "below":
+        return price <= alert.target_price
+
+    return False
+
+
+def _latest_price_for_alert(alert):
+    """
+    Return the latest stored snapshot price for the alert's asset.
+
+    This uses the same snapshot source shown elsewhere in MarketVista, so the
+    alert review page can show status and current price consistently.
+    """
+    latest_snapshot = alert.asset.price_snapshots.order_by("-timestamp").first()
+
+    if not latest_snapshot:
+        return None
+
+    return _normalize_decimal(latest_snapshot.price)
+
+
+def sync_user_alert_states(user):
+    """
+    Persist any alert that has crossed its threshold according to the latest
+    stored snapshot.
+
+    This is intentionally conservative:
+    - It only moves non-triggered alerts into triggered state.
+    - It never moves a triggered alert back to pending.
+    - It does not send email from the page-view path.
+    """
+    if not getattr(user, "is_authenticated", False):
+        return 0
+
+    alerts = (
+        Alert.objects.filter(user=user, is_triggered=False)
+        .select_related("asset")
+        .order_by("-created_at")
+    )
+
+    updated_count = 0
+
+    for alert in alerts:
+        current_price = _latest_price_for_alert(alert)
+
+        if not _should_trigger(alert, current_price):
+            continue
+
+        alert.is_triggered = True
+        alert.save(update_fields=["is_triggered"])
+        updated_count += 1
+
+    return updated_count
+
+
+def _decorate_alert_for_review(alert):
+    """
+    Attach display-only values used by alert_list.html.
+
+    These attributes keep the premium template simple and ensure the KPI strip
+    and visible table rows use the same status state.
+    """
+    current_price = _latest_price_for_alert(alert)
+
+    alert.current_price = current_price
+    alert.review_is_triggered = bool(alert.is_triggered)
+    alert.review_status = "triggered" if alert.review_is_triggered else "pending"
+    alert.review_status_label = "TRIGGERED" if alert.review_is_triggered else "PENDING"
+    alert.review_status_class = "danger" if alert.review_is_triggered else "neutral"
+
+    return alert
+
+
+def get_alert_review_rows(user):
+    """
+    Return alert rows for the alert review page.
+
+    The function first synchronizes crossed thresholds, then returns the rows
+    decorated with display values. The table and summary should both use this
+    same list.
+    """
+    if not getattr(user, "is_authenticated", False):
+        return []
+
+    sync_user_alert_states(user)
+
+    alerts = list(
+        Alert.objects.filter(user=user)
+        .select_related("asset")
+        .order_by("-created_at")
+    )
+
+    return [_decorate_alert_for_review(alert) for alert in alerts]
+
+
 def get_active_alert_count(user):
     if not getattr(user, "is_authenticated", False):
         return 0
-    return Alert.objects.filter(user=user, is_triggered=False).count()
+
+    return get_alert_summary(user)["pending_count"]
 
 
 def get_triggered_alerts(user, limit=10):
     if not getattr(user, "is_authenticated", False):
-        return Alert.objects.none()
+        return []
 
-    return (
-        Alert.objects.filter(user=user, is_triggered=True)
-        .select_related("asset")
-        .order_by("-created_at")[:limit]
-    )
+    return [
+        alert for alert in get_alert_review_rows(user)
+        if alert.review_is_triggered
+    ][:limit]
 
 
-def get_alert_summary(user):
+def get_alert_summary(user, alert_rows=None):
+    """
+    Return consistent alert counts.
+
+    If alert_rows is supplied, the counts are built from exactly the same rows
+    shown in the table. This is the key consistency rule for the Alerts page.
+    """
     if not getattr(user, "is_authenticated", False):
         return {
+            "total_count": 0,
+            "row_count": 0,
             "active_count": 0,
+            "pending_count": 0,
             "triggered_count": 0,
             "recent_triggered": [],
         }
 
-    active_count = Alert.objects.filter(user=user, is_triggered=False).count()
-    triggered_count = Alert.objects.filter(user=user, is_triggered=True).count()
-    recent_triggered = list(get_triggered_alerts(user, limit=5))
+    rows = list(alert_rows) if alert_rows is not None else get_alert_review_rows(user)
+
+    total_count = len(rows)
+    triggered_count = sum(1 for alert in rows if alert.review_is_triggered)
+    pending_count = total_count - triggered_count
+    recent_triggered = [alert for alert in rows if alert.review_is_triggered][:5]
 
     return {
-        "active_count": active_count,
+        "total_count": total_count,
+        "row_count": total_count,
+        "active_count": pending_count,  # backward-compatible alias
+        "pending_count": pending_count,
         "triggered_count": triggered_count,
         "recent_triggered": recent_triggered,
     }
@@ -70,8 +202,7 @@ def fetch_and_acknowledge_triggered_alerts(user):
     payload = []
 
     for alert in alerts:
-        latest_snapshot = alert.asset.price_snapshots.order_by("-timestamp").first()
-        current_price = latest_snapshot.price if latest_snapshot else None
+        current_price = _latest_price_for_alert(alert)
 
         payload.append(
             {
@@ -154,32 +285,12 @@ def send_alert_email(user, alert, current_price=None):
         )
 
 
-def _normalize_decimal(value):
-    """
-    Convert any incoming numeric value into Decimal safely.
-    """
-    try:
-        return Decimal(str(value))
-    except (InvalidOperation, TypeError, ValueError):
-        return None
-
-
-def _should_trigger(alert, price: Decimal) -> bool:
-    """
-    Decide whether a specific alert should trigger against a normalized price.
-    """
-    if alert.direction == "above":
-        return price >= alert.target_price
-    if alert.direction == "below":
-        return price <= alert.target_price
-    return False
-
-
 def check_alerts_for_asset(asset, latest_price):
     """
     Check all non-triggered alerts for a given asset and trigger matching ones.
     """
     normalized_price = _normalize_decimal(latest_price)
+
     if normalized_price is None:
         logger.warning(
             "Skipping alert check for %s due to invalid latest price: %r",

@@ -1,262 +1,558 @@
 .mv-alerts-page {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
-.mv-al-hero {
+/* =========================================================
+   Alerts page surfaces
+   Matches the current premium alert_list.html structure:
+   .mv-alerts-hero
+   .mv-alerts-summary-panel
+   .mv-al-registry
+   .mv-alerts-side
+   .mv-al-workflow
+   .mv-alert-workflow-list
+   .mv-alert-workflow-step
+   .mv-al-next
+   .mv-alerts-handoff
+   ========================================================= */
+
+.mv-alerts-hero,
+.mv-alerts-summary-panel,
+.mv-al-registry,
+.mv-al-workflow,
+.mv-al-next,
+.mv-alerts-handoff {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(34, 211, 238, 0.14);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.16), transparent 32%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(2, 8, 23, 0.96));
+  box-shadow: var(--mv-shadow-md);
+}
+
+.mv-alerts-hero {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+  gap: 22px;
+  align-items: stretch;
+  padding: 28px;
+  border-color: rgba(34, 211, 238, 0.18);
+  border-radius: 28px;
+  box-shadow: var(--mv-shadow-md), 0 0 34px rgba(20, 184, 166, 0.055);
+}
+
+.mv-alerts-hero-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.mv-al-eyebrow,
+.mv-al-card-title,
+.mv-sum-eye,
+.mv-fc-eye,
+.mv-al-row-head,
+.mv-al-card-subtitle {
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.72);
 }
 
 .mv-al-eyebrow {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.38);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
   margin-bottom: 12px;
+  color: rgba(153, 246, 228, 0.9);
 }
 
 .mv-al-title {
-  margin: 0 0 14px;
-  font-size: 52px;
+  margin: 0;
+  font-size: clamp(36px, 3.6vw, 58px);
   line-height: 0.98;
-  font-weight: 700;
-  color: #e2e8f0;
+  letter-spacing: -0.05em;
+  font-weight: 950;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .mv-al-subtitle {
-  margin: 0 0 18px;
   max-width: 820px;
-  font-size: 18px;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.88);
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.72;
+  color: rgba(226, 232, 240, 0.76);
 }
 
 .mv-al-chip-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 18px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  gap: 10px;
+  margin-top: 20px;
 }
 
-.mv-al-summary-head {
-  margin-bottom: 14px;
+.mv-al-chip-row span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.58);
+  color: rgba(226, 232, 240, 0.74);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   KPI summary
+   ========================================================= */
+
+.mv-alerts-summary-panel {
+  padding: 18px;
+  border-color: rgba(148, 163, 184, 0.15);
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.13), transparent 34%),
+    rgba(15, 23, 42, 0.68);
 }
 
 .mv-al-summary-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0;
 }
 
-.mv-al-summary-grid .mv-sum-card {
-  padding: 12px;
+.mv-al-summary-card {
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(2, 8, 23, 0.56));
 }
 
-.mv-al-summary-grid .mv-sum-val {
-  font-size: 20px;
+.mv-sum-val {
+  margin-top: 8px;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 950;
+  color: rgba(255, 255, 255, 0.95);
 }
 
-.mv-al-danger {
-  color: #ef4444;
+.mv-al-summary-card.danger .mv-sum-val {
+  color: rgba(248, 113, 113, 0.98);
 }
 
-.mv-al-warning {
-  color: #f59e0b;
-}
-
-.mv-al-primary-cta {
-  margin-top: 16px;
+.mv-al-summary-card.warning .mv-sum-val {
+  color: rgba(245, 158, 11, 0.98);
 }
 
 .mv-al-full-btn {
   width: 100%;
   justify-content: center;
+  min-height: 44px;
 }
+
+/* =========================================================
+   Toolbar
+   ========================================================= */
+
+.mv-alerts-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(180px, 240px) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.mv-search-input,
+.mv-alert-status-select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 14px;
+  background-color: rgba(15, 23, 42, 0.86);
+  color: rgba(226, 232, 240, 0.9);
+  padding: 0 14px;
+  font-size: 13px;
+  outline: none;
+}
+
+.mv-search-input::placeholder {
+  color: rgba(148, 163, 184, 0.7);
+}
+
+.mv-search-input:focus,
+.mv-alert-status-select:focus {
+  border-color: rgba(45, 212, 191, 0.44);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.08);
+}
+
+/* =========================================================
+   Main layout
+   ========================================================= */
 
 .mv-al-main {
   display: grid;
-  grid-template-columns: 1.08fr 0.92fr;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1.06fr) minmax(360px, 0.94fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.mv-alerts-side {
+  display: grid;
+  gap: 18px;
 }
 
 .mv-al-registry,
-.mv-al-side {
-  min-width: 0;
+.mv-al-workflow,
+.mv-al-next {
+  padding: 20px;
 }
 
-.mv-al-card-head {
+.mv-al-card-head,
+.mv-alerts-handoff {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: 14px;
 }
 
-.mv-al-card-title {
+.mv-al-card-head {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.mv-al-card-subtitle,
+.mv-al-empty-copy,
+.mv-fc-txt {
+  margin-top: 6px;
   font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.38);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
+  line-height: 1.6;
+  color: rgba(203, 213, 225, 0.68);
 }
 
 .mv-al-card-meta {
+  color: rgba(45, 212, 191, 0.95);
   font-size: 12px;
-  color: #0d9488;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   Alert registry table
+   Fixes clipped Status / Created column and restores premium row styling.
+   ========================================================= */
+
+.mv-al-row-head,
+.mv-al-row {
+  display: grid;
+  grid-template-columns:
+    minmax(150px, 1.08fr)
+    minmax(120px, 0.72fr)
+    minmax(105px, 0.58fr)
+    minmax(130px, 0.82fr);
+  gap: 14px;
+  align-items: center;
 }
 
 .mv-al-row-head {
-  display: grid;
-  grid-template-columns: 1.2fr 0.95fr 0.75fr 0.75fr;
-  gap: 10px;
-  padding-bottom: 10px;
-  margin-bottom: 4px;
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.28);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  font-weight: 600;
+  padding: 14px 0 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  white-space: nowrap;
+}
+
+.mv-al-row-head > div:last-child {
+  text-align: right;
 }
 
 .mv-al-row {
-  display: grid;
-  grid-template-columns: 1.2fr 0.95fr 0.75fr 0.75fr;
-  gap: 10px;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+  min-height: 72px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.09);
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    border-color 0.18s ease;
 }
 
-.mv-al-row:last-child {
-  border-bottom: none;
+.mv-al-row:last-of-type {
+  border-bottom: 0;
 }
 
-.mv-al-asset {
-  min-width: 0;
+.mv-al-row:hover {
+  background: rgba(255, 255, 255, 0.025);
+  transform: translateX(2px);
 }
 
-.mv-al-asset-main {
-  font-size: 14px;
-  font-weight: 600;
-  color: #e2e8f0;
+.mv-al-row[data-status="triggered"] {
+  margin-left: -10px;
+  margin-right: -10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, rgba(239, 68, 68, 0.085), rgba(15, 23, 42, 0.18));
+  border-bottom-color: rgba(239, 68, 68, 0.12);
+}
+
+.mv-al-row[data-status="pending"] {
+  background: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.18));
+}
+
+.mv-al-asset-main,
+.mv-al-target {
+  font-size: 13px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .mv-al-asset-sub {
-  margin-top: 3px;
+  margin-top: 4px;
+  color: rgba(148, 163, 184, 0.62);
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.36);
 }
 
 .mv-al-direction {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.mv-al-direction .mv-chip {
-  flex-shrink: 0;
-}
-
-.mv-al-target {
-  font-size: 14px;
-  font-weight: 600;
-  color: #e2e8f0;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(226, 232, 240, 0.78);
+  min-width: 0;
 }
 
 .mv-al-created {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.42);
+  display: grid;
+  justify-items: end;
+  gap: 5px;
   text-align: right;
+  color: rgba(148, 163, 184, 0.66);
+  font-size: 12px;
+  min-width: 0;
 }
 
-.mv-al-status-row {
-  margin-bottom: 4px;
+.mv-al-created .mv-muted {
+  color: rgba(148, 163, 184, 0.66);
+  font-size: 11px;
 }
+
+/* =========================================================
+   Workflow side panel
+   Your current HTML uses .mv-alert-workflow-list / .mv-alert-workflow-step.
+   The old CSS targeted .mv-al-list, so this restores the missing style.
+   ========================================================= */
+
+.mv-alert-workflow-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.mv-alert-workflow-step {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: start;
+  padding: 13px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(2, 8, 23, 0.44));
+}
+
+.mv-alert-workflow-step > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.13);
+  color: rgba(153, 246, 228, 0.92);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.mv-alert-workflow-step strong {
+  display: block;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.mv-alert-workflow-step p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(203, 213, 225, 0.68);
+}
+
+/* Backward compatibility if older markup still appears */
+.mv-al-list {
+  display: grid;
+  gap: 10px;
+}
+
+.mv-al-list > div {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 4px;
+  padding: 13px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.54);
+}
+
+.mv-al-list span {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.12);
+  color: rgba(153, 246, 228, 0.92);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.mv-al-list strong {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+}
+
+.mv-al-list em {
+  font-style: normal;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(203, 213, 225, 0.68);
+}
+
+/* =========================================================
+   Suggested next moves
+   ========================================================= */
+
+.mv-al-next {
+  display: grid;
+  gap: 12px;
+}
+
+.mv-al-next .mv-al-card-title {
+  margin-bottom: 2px;
+}
+
+.mv-al-next .mv-btn {
+  min-height: 46px;
+  justify-content: center;
+}
+
+.mv-al-next .mv-btn.warning {
+  border-color: rgba(245, 158, 11, 0.44);
+  color: rgba(252, 211, 77, 0.96);
+}
+
+.mv-al-btn-cyan {
+  border-color: rgba(34, 211, 238, 0.44);
+  color: rgba(103, 232, 249, 0.96);
+}
+
+.mv-al-btn-amber {
+  border-color: rgba(245, 158, 11, 0.44);
+  color: rgba(252, 211, 77, 0.96);
+}
+
+.mv-al-btn-light {
+  border-color: rgba(226, 232, 240, 0.32);
+  color: rgba(226, 232, 240, 0.9);
+}
+
+/* =========================================================
+   Empty / no-result states
+   ========================================================= */
 
 .mv-al-empty {
-  padding: 38px 20px;
+  min-height: 260px;
+  display: grid;
+  place-items: center;
   text-align: center;
 }
 
 .mv-al-empty-icon {
-  font-size: 40px;
-  opacity: 0.16;
+  font-size: 44px;
+  opacity: 0.18;
   margin-bottom: 12px;
 }
 
 .mv-al-empty-title {
   font-size: 18px;
-  color: rgba(255, 255, 255, 0.76);
-  margin-bottom: 18px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.82);
 }
 
-.mv-al-side-block {
-  margin-bottom: 14px;
+.mv-alerts-no-results,
+.mv-al-no-results {
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.62);
+  font-size: 13px;
+  color: rgba(203, 213, 225, 0.72);
 }
 
-.mv-al-side-block:last-child {
-  margin-bottom: 0;
+.mv-alerts-no-results[hidden],
+.mv-al-no-results[hidden] {
+  display: none !important;
 }
 
-.mv-al-side-title {
-  margin-bottom: 14px;
+/* =========================================================
+   Footer handoff
+   ========================================================= */
+
+.mv-alerts-handoff {
+  padding: 20px 22px;
+  border-color: rgba(20, 184, 166, 0.22);
 }
 
-.mv-al-list {
-  display: grid;
-  gap: 10px;
-  font-size: 15px;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.84);
+.mv-alerts-handoff .mv-btn.is-disabled {
+  white-space: nowrap;
 }
 
-.mv-al-actions {
-  display: grid;
-  gap: 12px;
-}
+/* =========================================================
+   Responsive
+   ========================================================= */
 
-.mv-al-actions .mv-btn,
-.mv-al-actions .mv-btn-solid {
-  min-height: 48px;
-  justify-content: center;
-  font-size: 14px;
-}
-
-.mv-al-btn-cyan {
-  border-color: #00c7ff;
-  color: #00c7ff;
-}
-
-.mv-al-btn-amber {
-  border-color: #ffcc00;
-  color: #ffcc00;
-}
-
-.mv-al-btn-light {
-  border-color: #ffffff;
-  color: #ffffff;
-}
-
-@media (max-width: 1100px) {
-  .mv-al-hero,
+@media (max-width: 1180px) {
+  .mv-alerts-hero,
+  .mv-alerts-toolbar,
   .mv-al-main {
     grid-template-columns: 1fr;
   }
-
-  .mv-al-title {
-    font-size: 42px;
-  }
 }
 
-@media (max-width: 760px) {
-  .mv-al-summary-grid {
+@media (max-width: 780px) {
+  .mv-alerts-page {
+    gap: 14px;
+  }
+
+  .mv-alerts-hero,
+  .mv-al-registry,
+  .mv-al-workflow,
+  .mv-al-next {
+    padding: 18px;
+  }
+
+  .mv-al-summary-grid,
+  .mv-alerts-toolbar,
+  .mv-al-row {
     grid-template-columns: 1fr;
   }
 
@@ -264,17 +560,39 @@
     display: none;
   }
 
-  .mv-al-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    padding: 14px 0;
-  }
-
   .mv-al-created {
+    justify-items: start;
     text-align: left;
   }
 
-  .mv-al-title {
-    font-size: 34px;
+  .mv-alerts-handoff,
+  .mv-al-card-head {
+    align-items: flex-start;
+    flex-direction: column;
   }
+}
+
+/* =========================================================
+   Disabled / planned action state
+   Keeps hover cursor available for disabled planned handoff.
+   ========================================================= */
+
+.mv-alerts-page .mv-btn.is-disabled,
+.mv-alerts-page .mv-btn[aria-disabled="true"] {
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+  opacity: 0.58;
+  filter: grayscale(0.12);
+  user-select: none;
+}
+
+.mv-alerts-page .mv-btn.is-disabled:hover,
+.mv-alerts-page .mv-btn[aria-disabled="true"]:hover {
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: grayscale(0.18);
+  border-color: rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.58);
+  color: rgba(203, 213, 225, 0.58);
 }

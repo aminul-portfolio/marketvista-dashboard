@@ -1,69 +1,69 @@
-(function () {
-  "use strict";
+document.addEventListener("DOMContentLoaded", () => {
+  const filterButtons = document.querySelectorAll("[data-signal-filter]");
+  const signalRows = document.querySelectorAll("[data-signal-severity]");
+  const visibleCountLabel = document.querySelector("[data-visible-signal-count]");
+  const emptyState = document.querySelector("[data-signal-empty-state]");
 
-  function qs(selector, scope = document) {
-    return scope.querySelector(selector);
+  function setActiveButton(activeButton) {
+    filterButtons.forEach((button) => {
+      const isActive = button === activeButton;
+
+      button.classList.toggle("primary", isActive);
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
   }
 
-  function qsa(selector, scope = document) {
-    return Array.from(scope.querySelectorAll(selector));
+  function updateEmptyState(visibleCount) {
+    if (!emptyState) return;
+
+    if (visibleCount === 0) {
+      emptyState.hidden = false;
+    } else {
+      emptyState.hidden = true;
+    }
   }
 
-  function signalSeverity(card) {
-    const value = (card.dataset.severity || "").toLowerCase();
-    if (value) return value;
+  function updateVisibleCount(visibleCount) {
+    if (!visibleCountLabel) return;
 
-    if (card.classList.contains("elevated")) return "elevated";
-    if (card.classList.contains("watchlist")) return "watchlist";
-    if (card.classList.contains("info")) return "info";
-    return "";
+    visibleCountLabel.textContent = `${visibleCount} visible`;
   }
 
-  function initSignalsPage() {
-    const root = document.querySelector(".mv-signals-page");
-    if (!root) return;
+  function applyFilter(filterValue) {
+    let visibleCount = 0;
 
-    const cards = qsa(".mv-sig-card", root);
-    const searchInput = qs("#signalSearch", root) || qs("[data-signal-search]", root);
-    const severityFilter = qs("#signalSeverityFilter", root) || qs("[data-signal-severity]", root);
-    const visibleCount = qs("[data-signal-visible-count]", root);
-    const emptyMessage = qs("[data-signal-no-results]", root);
+    signalRows.forEach((row) => {
+      const rowSeverity = row.dataset.signalSeverity;
 
-    function applyFilters() {
-      const query = (searchInput?.value || "").trim().toLowerCase();
-      const severity = (severityFilter?.value || "").trim().toLowerCase();
+      const shouldShow =
+        filterValue === "all" || rowSeverity === filterValue;
 
-      let visible = 0;
+      row.hidden = !shouldShow;
 
-      cards.forEach((card) => {
-        const text = card.textContent.toLowerCase();
-        const matchesQuery = !query || text.includes(query);
-        const matchesSeverity = !severity || signalSeverity(card) === severity;
-        const show = matchesQuery && matchesSeverity;
-
-        card.style.display = show ? "" : "none";
-        if (show) visible += 1;
-      });
-
-      if (visibleCount) {
-        visibleCount.textContent = String(visible);
+      if (shouldShow) {
+        visibleCount += 1;
       }
+    });
 
-      if (emptyMessage) {
-        emptyMessage.hidden = visible !== 0;
-      }
-    }
-
-    if (searchInput) {
-      searchInput.addEventListener("input", applyFilters);
-    }
-
-    if (severityFilter) {
-      severityFilter.addEventListener("change", applyFilters);
-    }
-
-    applyFilters();
+    updateVisibleCount(visibleCount);
+    updateEmptyState(visibleCount);
   }
 
-  document.addEventListener("DOMContentLoaded", initSignalsPage);
-})();
+  filterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const filterValue = button.dataset.signalFilter || "all";
+
+      setActiveButton(button);
+      applyFilter(filterValue);
+    });
+  });
+
+  const defaultButton =
+    document.querySelector('[data-signal-filter="all"]') ||
+    filterButtons[0];
+
+  if (defaultButton) {
+    setActiveButton(defaultButton);
+    applyFilter(defaultButton.dataset.signalFilter || "all");
+  }
+});

@@ -461,3 +461,128 @@
     white-space: normal;
   }
 }
+/* Premium SaaS foundation pass — safe global overrides */
+.mv-main {
+  background:
+    radial-gradient(circle at top right, rgba(13, 148, 136, 0.055), transparent 30%),
+    var(--mv-bg);
+}
+
+.mv-topbar {
+  min-height: 64px;
+  background:
+    linear-gradient(180deg, rgba(10, 15, 30, 0.96), rgba(8, 13, 25, 0.94));
+  backdrop-filter: blur(18px);
+  border-bottom-color: rgba(148, 163, 184, 0.10);
+}
+
+.mv-tb-title {
+  font-size: 16px;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.mv-tb-bread {
+  color: rgba(148, 163, 184, 0.58);
+}
+
+.mv-freshness {
+  min-height: 28px;
+  padding: 5px 10px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.mv-freshness.is-fresh {
+  background: rgba(13, 148, 136, 0.14);
+  border-color: rgba(45, 212, 191, 0.24);
+  color: rgba(153, 246, 228, 0.94);
+}
+
+.mv-attr-strip {
+  min-height: 36px;
+  padding: 8px 20px;
+  background:
+    linear-gradient(90deg, rgba(13, 148, 136, 0.08), rgba(6, 182, 212, 0.035));
+  border-bottom-color: rgba(45, 212, 191, 0.14);
+}
+
+.mv-attr-strip-premium {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.mv-attr-txt {
+  color: rgba(203, 213, 225, 0.66);
+  font-weight: 650;
+}
+
+.mv-attr-right {
+  color: rgba(148, 163, 184, 0.58);
+  font-weight: 650;
+}
+
+.mv-attr-dot {
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.45);
+}
+
+.mv-content {
+  gap: 18px;
+  padding: 18px 20px 24px;
+}
+
+@media (max-width: 700px) {
+  .mv-content {
+    padding-top: 14px;
+  }
+
+  .mv-attr-right {
+    white-space: normal;
+  }
+}
+
+
+/* Sidebar account controls — keeps Login/Register/Admin/Logout consistent with nav items */
+.mv-nav-account-group {
+  margin-top: 8px;
+}
+
+.mv-nav-form {
+  margin: 0;
+}
+
+.mv-nav-button {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.mv-nav-button:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mv-nav-button .mv-nl,
+.mv-nav-button .mv-ni {
+  pointer-events: none;
+}
+
+.mv-avatar {
+  background:
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.12), transparent 38%),
+    rgba(15, 23, 42, 0.76);
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+.mv-av-name {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.mv-av-role {
+  color: rgba(148, 163, 184, 0.62);
+}

@@ -14,46 +14,43 @@
 {% endblock %}
 
 {% block attr_strip %}
-<div class="mv-attr-strip">
+<div class="mv-attr-strip mv-attr-strip-premium">
   <div class="mv-attr-left">
     <div class="mv-attr-dot"></div>
-    <span class="mv-attr-txt">Turn a tracked market condition into a reviewable monitoring trigger.</span>
+    <span class="mv-attr-txt">Create a reviewable threshold trigger for the monitored asset universe.</span>
   </div>
-  <span class="mv-attr-right">Threshold setup · alert review · analyst routing</span>
+  <span class="mv-attr-right">Threshold setup · Alert review · Analyst routing</span>
 </div>
 {% endblock %}
 
 {% block page_content %}
 <div class="mv-create-alert-page">
 
-  <div class="mv-ca-hero">
-    <section class="mv-card">
+  <section class="mv-ca-hero">
+    <div class="mv-ca-hero-main">
       <div class="mv-ca-eyebrow">Alert creation surface</div>
-
-      <h1 class="mv-ca-title">Create Price Alert</h1>
-
+      <h1 class="mv-ca-title">Create price alert</h1>
       <p class="mv-ca-subtitle">
-        Add a monitoring trigger for a tracked asset so MarketVista can surface price conditions that deserve analyst attention.
+        Add a threshold trigger for a tracked asset so MarketVista can surface exact price conditions during alert review, dashboard monitoring, and asset-level inspection.
       </p>
 
       <div class="mv-ca-chip-row">
-        <span>◉ Monitoring-first workflow</span>
-        <span>◉ User-defined alert tracking</span>
-        <span>◉ Analyst attention routing</span>
+        <span>Monitoring-first workflow</span>
+        <span>User-defined threshold</span>
+        <span>Pairs with signals</span>
+        <span>Reviewable alert state</span>
       </div>
-    </section>
+    </div>
 
-    <section class="mv-card">
+    <aside class="mv-ca-side-panel">
       <div class="mv-ca-side-title">What this does</div>
-
-      <h2 class="mv-ca-side-headline">Turns a market condition into a monitoring trigger</h2>
-
-      <div class="mv-ca-side-copy">
-        Use alerts to keep focus on important assets while the dashboard handles freshness, signals, watchlist context, and chart review.
-      </div>
+      <h2 class="mv-ca-side-headline">Turns a market condition into a reviewable monitoring trigger</h2>
+      <p class="mv-ca-side-copy">
+        Alerts keep exact levels visible while the dashboard, signal page, watchlist, and asset detail page provide broader monitoring context.
+      </p>
 
       <div class="mv-ca-help-box">
-        <div class="mv-ca-side-title mv-ca-help-title">How to use this page</div>
+        <div class="mv-ca-help-title">How to use this page</div>
         <ul class="mv-ca-help-list">
           <li>Choose an asset from the tracked monitoring universe.</li>
           <li>Set whether price must move above or below the threshold.</li>
@@ -61,17 +58,39 @@
           <li>Review triggered conditions from Alerts and Dashboard.</li>
         </ul>
       </div>
-    </section>
-  </div>
+    </aside>
+  </section>
+
+  <section class="mv-ca-workflow-strip" aria-label="Alert workflow summary">
+    <div>
+      <span>Workflow</span>
+      <strong>Monitoring trigger setup</strong>
+    </div>
+    <div>
+      <span>Pairs with</span>
+      <strong>Signals + Watchlist</strong>
+    </div>
+    <div>
+      <span>Outcome</span>
+      <strong>Actionable alert review</strong>
+    </div>
+    <div>
+      <span>Next surface</span>
+      <strong>Alerts / Asset Detail</strong>
+    </div>
+  </section>
 
   <div class="mv-ca-main">
     <section class="mv-card mv-ca-form-wrap">
       <div class="mv-ca-card-head">
-        <span class="mv-ca-card-title">New alert</span>
-        <span class="mv-ca-card-meta">Monitoring trigger setup</span>
+        <div>
+          <span class="mv-ca-card-title">New alert</span>
+          <div class="mv-ca-card-subtitle">Create one precise threshold condition for a tracked asset.</div>
+        </div>
+        <span class="mv-ca-card-meta">Reviewable trigger</span>
       </div>
 
-      <form method="post" novalidate id="createAlertForm">
+      <form method="post" novalidate id="createAlertForm" class="mv-ca-form">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -87,13 +106,16 @@
           {{ form.asset }}
           {% if form.asset.errors %}
             <div class="mv-ca-error">
-              {% for error in form.asset.errors %}
-                <div>{{ error }}</div>
-              {% endfor %}
+              {% for error in form.asset.errors %}<div>{{ error }}</div>{% endfor %}
             </div>
           {% endif %}
-          <div class="mv-ca-note">
-            Choose the asset you want MarketVista to monitor.
+          <div class="mv-ca-note">Choose the tracked asset that MarketVista should monitor.</div>
+
+          <div class="mv-ca-selected-asset" id="mvSelectedAssetBox">
+            <div class="mv-ca-selected-asset-eye">Selected asset context</div>
+            <div class="mv-ca-selected-asset-copy">
+              This alert will monitor one tracked asset and surface threshold-based conditions inside the analyst workflow.
+            </div>
           </div>
         </div>
 
@@ -102,13 +124,20 @@
           {{ form.direction }}
           {% if form.direction.errors %}
             <div class="mv-ca-error">
-              {% for error in form.direction.errors %}
-                <div>{{ error }}</div>
-              {% endfor %}
+              {% for error in form.direction.errors %}<div>{{ error }}</div>{% endfor %}
             </div>
           {% endif %}
-          <div class="mv-ca-note">
-            Define whether the alert should trigger when price moves above or below the target.
+          <div class="mv-ca-note">Define whether the alert should trigger when price moves above or below the target.</div>
+
+          <div class="mv-ca-direction-grid">
+            <div class="mv-ca-direction-card">
+              <div class="mv-ca-direction-title">Above threshold</div>
+              <div class="mv-ca-direction-copy">Use this when the review condition is price rising above a target level.</div>
+            </div>
+            <div class="mv-ca-direction-card">
+              <div class="mv-ca-direction-title">Below threshold</div>
+              <div class="mv-ca-direction-copy">Use this when the review condition is price falling below a target level.</div>
+            </div>
           </div>
         </div>
 
@@ -117,62 +146,62 @@
           {{ form.target_price }}
           {% if form.target_price.errors %}
             <div class="mv-ca-error">
-              {% for error in form.target_price.errors %}
-                <div>{{ error }}</div>
-              {% endfor %}
+              {% for error in form.target_price.errors %}<div>{{ error }}</div>{% endfor %}
             </div>
           {% endif %}
-          <div class="mv-ca-note">
-            Set the threshold that should create an actionable monitoring event.
+          <div class="mv-ca-note">Set the threshold that should create an actionable monitoring event.</div>
+
+          <div class="mv-ca-threshold-help">
+            <div class="mv-ca-threshold-help-eye">Threshold guidance</div>
+            <div class="mv-ca-threshold-help-copy">Choose a meaningful monitoring level, not a small random move.</div>
+          </div>
+        </div>
+
+        <div class="mv-ca-review-box">
+          <div class="mv-ca-review-eye">Pre-submit review</div>
+          <div class="mv-ca-review-copy">
+            You are creating a threshold-based monitoring trigger that will appear in Alerts and pair with the asset, signal, and watchlist workflow.
           </div>
         </div>
 
         <div class="mv-ca-actions">
-          <button type="submit" class="mv-btn-solid">
-            Create Alert
-          </button>
-
-          <a href="{% url 'monitoring:alert_list' %}" class="mv-btn">
-            Back to Alerts
-          </a>
+          <button type="submit" class="mv-btn-solid">Create Alert</button>
+          <a href="{% url 'monitoring:alert_list' %}" class="mv-btn">Back to Alerts</a>
         </div>
       </form>
     </section>
 
-    <section class="mv-card mv-ca-fit-wrap">
+    <aside class="mv-card mv-ca-fit-wrap">
       <div class="mv-ca-card-head">
         <span class="mv-ca-card-title">Monitoring fit</span>
       </div>
 
       <div class="mv-ca-fit-grid">
-        <div class="mv-sum-card">
+        <div class="mv-ca-fit-card">
           <div class="mv-sum-eye">Primary role</div>
           <div class="mv-sum-val">Alert setup</div>
         </div>
-
-        <div class="mv-sum-card">
+        <div class="mv-ca-fit-card">
           <div class="mv-sum-eye">Product fit</div>
           <div class="mv-sum-val">Monitoring-first</div>
         </div>
-
-        <div class="mv-sum-card">
+        <div class="mv-ca-fit-card">
           <div class="mv-sum-eye">Pairs with</div>
           <div class="mv-sum-val">Signals + Watchlist</div>
         </div>
-
-        <div class="mv-sum-card">
+        <div class="mv-ca-fit-card">
           <div class="mv-sum-eye">Next review</div>
           <div class="mv-sum-val">Alerts / Dashboard</div>
         </div>
       </div>
 
       <div class="mv-ca-workflow-box">
-        <div class="mv-fc-eye">Workflow</div>
+        <div class="mv-fc-eye">Planned workflow</div>
         <div class="mv-fc-txt">
-          Alerts complement signals and watchlist context so important market conditions are easier to review.
+          Alerts complement signal severity and watchlist context so important market conditions are easier to inspect before any planned RiskWise handoff.
         </div>
       </div>
-    </section>
+    </aside>
   </div>
 
 </div>
@@ -181,3 +210,4 @@
 {% block extra_js %}
 <script src="{% static 'js/forms.js' %}"></script>
 {% endblock %}
+

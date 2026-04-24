@@ -1,59 +1,247 @@
 .mv-watchlist-page {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
+}
+
+.mv-watchlist-hero,
+.mv-watchlist-registry,
+.mv-watchlist-footer,
+.mv-watchlist-handoff,
+.mv-watchlist-empty {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(34, 211, 238, 0.14);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.16), transparent 32%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(2, 8, 23, 0.96));
+  box-shadow: var(--mv-shadow-md);
+}
+
+.mv-watchlist-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+  gap: 18px;
+  align-items: center;
+  padding: 24px;
+}
+
+.mv-watchlist-eyebrow,
+.mv-wl-summary-label,
+.mv-watchlist-card-title,
+.mv-watchlist-footer-eye,
+.mv-th {
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.72);
+}
+
+.mv-watchlist-eyebrow {
+  color: rgba(153, 246, 228, 0.88);
+  margin-bottom: 10px;
+}
+
+.mv-watchlist-title {
+  margin: 0;
+  font-size: clamp(34px, 3.2vw, 52px);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  font-weight: 950;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.mv-watchlist-copy {
+  max-width: 820px;
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(226, 232, 240, 0.76);
+}
+
+.mv-watchlist-hero-meta {
+  display: grid;
+  gap: 12px;
+}
+
+.mv-watchlist-hero-meta > div {
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.mv-watchlist-hero-meta span {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.72);
+}
+
+.mv-watchlist-hero-meta strong {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .mv-watchlist-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.mv-wl-summary-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.08), transparent 36%),
+    rgba(15, 23, 42, 0.72);
+  box-shadow: var(--mv-shadow-sm);
+}
+
+.mv-wl-summary-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-left: 3px solid rgba(45, 212, 191, 0.5);
+  pointer-events: none;
+}
+
+.mv-wl-summary-card.elevated::before {
+  border-left-color: rgba(249, 115, 22, 0.92);
+}
+
+.mv-wl-summary-card.watchlist::before {
+  border-left-color: rgba(245, 158, 11, 0.9);
+}
+
+.mv-wl-summary-value {
+  margin-top: 9px;
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 950;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.mv-wl-summary-card.elevated .mv-wl-summary-value {
+  color: rgba(249, 115, 22, 0.98);
+}
+
+.mv-wl-summary-card.watchlist .mv-wl-summary-value {
+  color: rgba(245, 158, 11, 0.98);
+}
+
+.mv-wl-summary-copy,
+.mv-watchlist-card-subtitle,
+.mv-watchlist-footer-copy,
+.mv-watchlist-note {
+  margin-top: 9px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(203, 213, 225, 0.68);
+}
+
+.mv-watchlist-toolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(190px, 260px) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.mv-search-input,
+.mv-watchlist-select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.72);
+  color: rgba(226, 232, 240, 0.86);
+  padding: 0 14px;
+  font-size: 13px;
+  outline: none;
+}
+
+.mv-search-input:focus,
+.mv-watchlist-select:focus {
+  border-color: rgba(45, 212, 191, 0.44);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.08);
+}
+
+.mv-tb-right-btns {
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
+  justify-content: flex-end;
 }
 
-.mv-watchlist-summary .mv-sum-val.elevated {
-  color: var(--mv-elevated);
+.mv-watchlist-registry {
+  padding: 20px;
 }
 
-.mv-watchlist-summary .mv-sum-val.watchlist {
-  color: var(--mv-warning);
+.mv-watchlist-registry-head,
+.mv-watchlist-footer,
+.mv-watchlist-handoff {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.mv-watchlist-registry-head {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.mv-watchlist-visible {
+  color: rgba(45, 212, 191, 0.95);
+  font-size: 12px;
+  font-weight: 850;
+  white-space: nowrap;
 }
 
 .mv-watchlist-table-wrap {
   overflow-x: auto;
-  border-radius: var(--mv-radius-md);
+  border-radius: 18px;
 }
 
-.mv-watchlist-added {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.25);
+.mv-wl-table {
+  min-width: 930px;
 }
 
-.mv-watchlist-no-results {
-  padding: 16px 18px;
-  border-radius: 10px;
-  border: 0.5px solid rgba(255, 255, 255, 0.07);
-  background: rgba(255, 255, 255, 0.02);
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.42);
-}
-
-.mv-watchlist-empty {
-  min-height: 220px;
+.mv-wl-thead,
+.mv-wl-row {
   display: grid;
-  place-items: center;
-  text-align: center;
+  grid-template-columns: minmax(260px, 1.5fr) minmax(130px, 0.7fr) minmax(120px, 0.65fr) minmax(150px, 0.8fr) minmax(90px, 0.45fr) minmax(130px, 0.6fr);
+  gap: 14px;
+  align-items: center;
 }
 
-.mv-watchlist-empty-title {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.76);
-  margin-bottom: 10px;
+.mv-wl-thead {
+  padding: 14px 0 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 }
 
-.mv-watchlist-note {
-  font-size: 11px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.38);
+.mv-wl-row {
+  min-height: 68px;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.09);
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.mv-wl-row:last-child {
+  border-bottom: 0;
+}
+
+.mv-wl-row:hover {
+  background: rgba(255, 255, 255, 0.025);
+  transform: translateX(2px);
 }
 
 .mv-wl-row[data-priority="elevated"] {
@@ -64,16 +252,222 @@
   background: rgba(245, 158, 11, 0.03);
 }
 
+.mv-wr-asset,
+.mv-wr-actions,
 .mv-sig-badge {
-  min-width: 96px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.mv-export-row {
-  margin-top: 2px;
+.mv-wr-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  background: rgba(20, 184, 166, 0.1);
+  color: rgba(153, 246, 228, 0.95);
+  font-size: 12px;
+  font-weight: 900;
 }
 
-@media (max-width: 1080px) {
+.mv-wr-name,
+.mv-wr-price,
+.mv-wr-chg {
+  font-size: 13px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mv-wr-sym,
+.mv-watchlist-added {
+  margin-top: 3px;
+  font-size: 11px;
+  color: rgba(148, 163, 184, 0.62);
+}
+
+.mv-cls-chip {
+  display: inline-flex;
+  margin-left: 8px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.12);
+  color: rgba(153, 246, 228, 0.9);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.mv-up {
+  color: rgba(45, 212, 191, 0.98);
+}
+
+.mv-down {
+  color: rgba(251, 113, 133, 0.98);
+}
+
+.mv-muted {
+  color: rgba(148, 163, 184, 0.52);
+}
+
+.mv-sb-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.75);
+}
+
+.mv-sig-badge.elevated .mv-sb-dot {
+  background: rgba(249, 115, 22, 0.96);
+}
+
+.mv-sig-badge.watchlist .mv-sb-dot {
+  background: rgba(245, 158, 11, 0.96);
+}
+
+.mv-sig-badge.info .mv-sb-dot {
+  background: rgba(148, 163, 184, 0.86);
+}
+
+.mv-sb-n {
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 12px;
+}
+
+.mv-view-link {
+  color: rgba(45, 212, 191, 0.95);
+  font-weight: 850;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.mv-remove-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.72);
+  color: rgba(148, 163, 184, 0.7);
+  cursor: pointer;
+}
+
+.mv-watchlist-no-results {
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.62);
+  font-size: 13px;
+  color: rgba(203, 213, 225, 0.72);
+}
+
+.mv-watchlist-no-results[hidden] {
+  display: none !important;
+}
+
+.mv-watchlist-footer,
+.mv-watchlist-handoff,
+.mv-watchlist-empty {
+  padding: 18px 20px;
+}
+
+.mv-watchlist-handoff {
+  border-color: rgba(20, 184, 166, 0.22);
+}
+
+.mv-watchlist-empty {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.mv-watchlist-empty-title {
+  font-size: 18px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.mv-watchlist-empty-actions {
+  margin-top: 18px;
+}
+
+@media (max-width: 1180px) {
+  .mv-watchlist-hero,
+  .mv-watchlist-toolbar {
+    grid-template-columns: 1fr;
+  }
+
   .mv-watchlist-summary {
     grid-template-columns: 1fr;
+  }
+
+  .mv-tb-right-btns,
+  .mv-watchlist-registry-head,
+  .mv-watchlist-footer,
+  .mv-watchlist-handoff {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
+/* =========================================================
+   Final Watchlist Premium Pass
+   Reinforces page-specific SaaS composition and avoids plain-text fallback.
+   ========================================================= */
+
+.mv-watchlist-page > .mv-watchlist-hero {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr) !important;
+  gap: 18px !important;
+  padding: 28px !important;
+  border: 1px solid rgba(34, 211, 238, 0.18) !important;
+  border-radius: 26px !important;
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(2, 8, 23, 0.98)) !important;
+  box-shadow: var(--mv-shadow-md), 0 0 28px rgba(20, 184, 166, 0.055) !important;
+}
+
+.mv-watchlist-page .mv-watchlist-summary {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+}
+
+.mv-watchlist-page .mv-watchlist-toolbar {
+  padding: 14px !important;
+  border: 1px solid rgba(148, 163, 184, 0.12) !important;
+  border-radius: 20px !important;
+  background: rgba(15, 23, 42, 0.48) !important;
+}
+
+.mv-watchlist-page .mv-search-input,
+.mv-watchlist-page .mv-watchlist-select {
+  min-height: 46px !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  border-radius: 14px !important;
+  background-color: rgba(15, 23, 42, 0.86) !important;
+  color: rgba(226, 232, 240, 0.9) !important;
+}
+
+.mv-watchlist-page .mv-watchlist-registry {
+  padding: 22px !important;
+  border-radius: 26px !important;
+}
+
+.mv-watchlist-page .mv-watchlist-footer,
+.mv-watchlist-page .mv-watchlist-handoff {
+  padding: 20px 22px !important;
+  border-radius: 22px !important;
+}
+
+@media (max-width: 1180px) {
+  .mv-watchlist-page > .mv-watchlist-hero,
+  .mv-watchlist-page .mv-watchlist-summary,
+  .mv-watchlist-page .mv-watchlist-toolbar {
+    grid-template-columns: 1fr !important;
   }
 }

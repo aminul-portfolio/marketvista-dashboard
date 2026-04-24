@@ -12,12 +12,17 @@
 
 {% block topbar_right %}
   {% if freshness_signal %}
-    <span class="mv-freshness {% if freshness_signal.delay_minutes <= 5 %}is-fresh{% elif freshness_signal.delay_minutes <= 60 %}is-delayed{% else %}is-stale{% endif %}">
+    {% if freshness_signal.show_live_pulse %}
+      <div class="mv-pulse-wrap">
+        <div class="mv-pulse-dot"></div>
+        <span class="mv-pulse-txt">Live</span>
+      </div>
+    {% endif %}
+
+    <span class="mv-freshness {% if freshness_signal.status == 'fresh' or freshness_signal.status == 'demo' %}is-fresh{% elif freshness_signal.status == 'delayed' %}is-delayed{% else %}is-stale{% endif %}">
       {{ freshness_signal.label }}
-      {% if freshness_signal.delay_minutes <= 0 %}
-        · Just now
-      {% else %}
-        · {{ freshness_signal.delay_minutes|default:"—" }} min ago
+      {% if freshness_signal.age_text %}
+        · {{ freshness_signal.age_text }}
       {% endif %}
     </span>
   {% else %}
@@ -26,28 +31,36 @@
 {% endblock %}
 
 {% block attr_strip %}
-<div class="mv-attr-strip">
+<div class="mv-attr-strip mv-attr-strip-premium">
   <div class="mv-attr-left">
     <div class="mv-attr-dot"></div>
-    <span class="mv-attr-txt">Detailed asset inspection for signals, alerts, watchlist state, and RiskWise routing.</span>
+    <span class="mv-attr-txt">Asset-level monitoring evidence · Signal history · Alert context · Planned RiskWise handoff</span>
   </div>
-  <span class="mv-attr-right">Chart review · signal history · alert context</span>
+  <span class="mv-attr-right">Stored OHLC · Snapshot review · Watchlist state</span>
 </div>
 {% endblock %}
 
 {% block page_content %}
 <div class="mv-asset-detail-page">
 
-  <div class="mv-ad-top">
-    <section class="mv-card mv-ad-hero">
-      <div class="mv-asset-hd">
+  <section class="mv-ad-command-hero">
+    <div class="mv-ad-command-main">
+      <div class="mv-ad-eyebrow">Asset inspection surface</div>
+
+      <div class="mv-ad-identity-row">
         <div class="mv-ah-left">
           <div class="mv-asset-icon">{{ asset.symbol|slice:":2" }}</div>
           <div>
-            <div class="mv-asset-name">{{ asset.name }}</div>
+            <h1 class="mv-asset-name">{{ asset.name }}</h1>
             <div class="mv-asset-sub">
               <span class="mv-asset-sym">{{ asset.symbol }}</span>
               <span class="mv-asset-cls">{{ asset.get_asset_type_display }}</span>
+              {% if on_watchlist %}
+                <span class="mv-state-pill is-watchlist">On watchlist</span>
+              {% endif %}
+              {% if has_elevated_signal %}
+                <span class="mv-state-pill is-elevated">Elevated signal</span>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -57,7 +70,7 @@
             <div class="mv-asset-price">${{ latest_snapshot.price|floatformat:2 }}</div>
             {% if pct_move is not None %}
               <div class="mv-price-chg {% if pct_move >= 0 %}mv-up{% else %}mv-down{% endif %}">
-                {% if pct_move >= 0 %}+{% endif %}{{ pct_move|floatformat:2 }}% (3-day)
+                {% if pct_move >= 0 %}+{% endif %}{{ pct_move|floatformat:2 }}% · 3-day move
               </div>
             {% endif %}
           {% else %}
@@ -67,32 +80,22 @@
           {% if on_watchlist %}
             <form method="post" action="{% url 'monitoring:watchlist_remove' asset.symbol %}" data-watchlist-toggle-form>
               {% csrf_token %}
-              <button type="submit" class="mv-wl-btn">★ On your watchlist</button>
+              <button type="submit" class="mv-wl-btn is-active">★ On your watchlist</button>
             </form>
           {% else %}
             <form method="post" action="{% url 'monitoring:watchlist_add' asset.symbol %}" data-watchlist-toggle-form>
               {% csrf_token %}
-              <button
-                type="submit"
-                class="mv-wl-btn"
-                style="border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.40);"
-              >
-                ☆ Add to watchlist
-              </button>
+              <button type="submit" class="mv-wl-btn is-muted">☆ Add to watchlist</button>
             </form>
           {% endif %}
         </div>
       </div>
 
-      <div class="mv-ad-meta-grid">
+      <div class="mv-ad-meta-grid" aria-label="Asset monitoring summary">
         <div class="mv-ad-mini">
           <div class="mv-ad-mini-label">Current price</div>
           <div class="mv-ad-mini-value">
-            {% if latest_snapshot %}
-              ${{ latest_snapshot.price|floatformat:2 }}
-            {% else %}
-              —
-            {% endif %}
+            {% if latest_snapshot %}${{ latest_snapshot.price|floatformat:2 }}{% else %}—{% endif %}
           </div>
           <div class="mv-ad-mini-sub">Latest stored snapshot for this asset.</div>
         </div>
@@ -100,201 +103,235 @@
         <div class="mv-ad-mini">
           <div class="mv-ad-mini-label">3-day move</div>
           <div class="mv-ad-mini-value {% if pct_move is not None and pct_move >= 0 %}mv-up{% elif pct_move is not None %}mv-down{% endif %}">
-            {% if pct_move is not None %}
-              {% if pct_move >= 0 %}+{% endif %}{{ pct_move|floatformat:2 }}%
-            {% else %}
-              —
-            {% endif %}
+            {% if pct_move is not None %}{% if pct_move >= 0 %}+{% endif %}{{ pct_move|floatformat:2 }}%{% else %}—{% endif %}
           </div>
-          <div class="mv-ad-mini-sub">Short-term move used for monitoring context.</div>
+          <div class="mv-ad-mini-sub">Short-window movement used as monitoring context.</div>
         </div>
 
         <div class="mv-ad-mini">
-          <div class="mv-ad-mini-label">Status</div>
+          <div class="mv-ad-mini-label">Signal state</div>
           <div class="mv-ad-mini-value">
-            {% if has_elevated_signal %}
-              Elevated
-            {% elif signal_history %}
-              Active review
-            {% else %}
-              Quiet
-            {% endif %}
+            {% if has_elevated_signal %}Elevated{% elif signal_history %}Active review{% else %}Quiet{% endif %}
           </div>
           <div class="mv-ad-mini-sub">
             {% if has_elevated_signal %}
-              Asset currently has at least one elevated monitoring signal.
+              At least one elevated signal needs closer inspection.
+            {% elif signal_history %}
+              Recent signal records are available for review.
             {% else %}
-              Use alerts and watchlist state to keep this asset visible.
+              No active signal pressure currently surfaced.
             {% endif %}
           </div>
         </div>
+
+        <div class="mv-ad-mini">
+          <div class="mv-ad-mini-label">Asset alerts</div>
+          <div class="mv-ad-mini-value">{{ asset_alerts|length }}</div>
+          <div class="mv-ad-mini-sub">User-defined thresholds attached to this asset.</div>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <section class="mv-card mv-ad-context-card">
-      <div class="mv-ad-context-title">Monitoring context</div>
+    <aside class="mv-ad-workflow-card">
+      <div class="mv-ad-context-title">Analyst workflow</div>
 
-      <div class="mv-ad-context-copy">
-        Use this page to inspect one asset in more detail before routing it into deeper planning. It brings together price history, recent signal behaviour, watchlist state, and asset-specific alerts in one surface.
-      </div>
+      <p class="mv-ad-context-copy">
+        Use this page to decide whether one monitored asset deserves deeper review. It combines stored price history, signal behaviour, watchlist state, and threshold alerts in one surface.
+      </p>
 
-      <div class="mv-ad-context-list">
-        <div>• Review recent stored OHLC movement and short-term price direction.</div>
-        <div>• Check whether signals are informational, watchlist-level, or elevated.</div>
-        <div>• Use alerts to monitor exact threshold conditions alongside signal logic.</div>
-        <div>• Route elevated conditions into RiskWise for deeper scenario planning.</div>
+      <div class="mv-ad-workflow-list">
+        <div>
+          <span>01</span>
+          <strong>Inspect stored movement</strong>
+          <em>Review OHLC-backed price direction and latest snapshot context.</em>
+        </div>
+        <div>
+          <span>02</span>
+          <strong>Read signal evidence</strong>
+          <em>Check whether the asset is informational, watchlist-level, or elevated.</em>
+        </div>
+        <div>
+          <span>03</span>
+          <strong>Pair with alerts</strong>
+          <em>Use threshold alerts to track exact conditions alongside broader signal logic.</em>
+        </div>
+        <div>
+          <span>04</span>
+          <strong>Prepare handoff</strong>
+          <em>Elevated conditions can be prepared for the planned RiskWise scenario layer.</em>
+        </div>
       </div>
 
       <div class="mv-ad-actions">
         {% if has_elevated_signal %}
-          <a href="#" class="mv-btn-solid">Investigate in RiskWise</a>
+          <span class="mv-btn-solid" aria-disabled="true">RiskWise handoff planned</span>
         {% else %}
-          <a href="{% url 'monitoring:signals' %}" class="mv-btn" style="border-color:#ffcc00;color:#ffcc00;">View all signals</a>
+          <a href="{% url 'monitoring:signals' %}" class="mv-btn mv-ad-btn-amber">View all signals</a>
         {% endif %}
-
         <a href="{% url 'monitoring:create_alert' %}" class="mv-btn">Create asset alert</a>
       </div>
-    </section>
-  </div>
+    </aside>
+  </section>
 
-  <section class="mv-chart-section mv-ad-chart-wrap">
-    <div class="mv-chart-hd">
-      <span class="mv-chart-title">Price History — {{ asset.symbol }}</span>
-      <div class="mv-period-tabs">
-        <a
-          href="?period=7d"
-          data-asset-period="7d"
-          class="mv-pt {% if period == '7d' or not period %}active{% endif %}"
-        >
-          7d
-        </a>
-        <a
-          href="?period=30d"
-          data-asset-period="30d"
-          class="mv-pt {% if period == '30d' %}active{% endif %}"
-        >
-          30d
-        </a>
-        <a
-          href="?period=90d"
-          data-asset-period="90d"
-          class="mv-pt {% if period == '90d' %}active{% endif %}"
-        >
-          90d
-        </a>
+  <section class="mv-card mv-ad-history-card">
+    <div class="mv-ad-history-head">
+      <div>
+        <div class="mv-ad-section-eye">Price history</div>
+        <h2 class="mv-ad-history-title">{{ asset.symbol }} monitoring view</h2>
+      </div>
+
+      <div class="mv-ad-range-tabs" id="priceHistoryRangeTabs" aria-label="Price history range">
+        <button type="button" class="mv-ad-range-tab" data-price-range="1h">1H</button>
+        <button type="button" class="mv-ad-range-tab" data-price-range="4h">4H</button>
+        <button type="button" class="mv-ad-range-tab is-active" data-price-range="1d">1D</button>
       </div>
     </div>
 
-    <div
-      id="assetDetailChart"
-      data-asset-chart
-      data-symbol="{{ asset.symbol }}"
-      data-period="{{ period|default:'7d' }}"
-      data-chart-type="line"
-      style="min-height:260px;"
-    ></div>
-
-    {% if chart_start_label or chart_end_label %}
-      <div class="mv-ad-chart-foot">
-        <span>{{ chart_start_label }}</span>
-        <span>{{ chart_end_label }}</span>
+    <div class="mv-ad-history-insight-bar">
+      <div class="mv-ad-history-insight-left">
+        <div class="mv-ad-history-insight-eye">Monitoring insight</div>
+        <div class="mv-ad-history-insight-title" id="priceHistoryInsightTitle">
+          {{ asset.symbol }} is being evaluated across the selected monitoring window.
+        </div>
       </div>
-    {% endif %}
+      <div class="mv-ad-history-insight-badge" id="priceHistoryTrendBadge">Loading</div>
+    </div>
+
+    <div class="mv-ad-history-summary">
+      <div class="mv-ad-history-stat">
+        <div class="mv-ad-history-stat-label">Latest price</div>
+        <div class="mv-ad-history-stat-value" id="priceHistoryLatest">—</div>
+      </div>
+      <div class="mv-ad-history-stat">
+        <div class="mv-ad-history-stat-label">Change</div>
+        <div class="mv-ad-history-stat-value" id="priceHistoryChange">—</div>
+      </div>
+      <div class="mv-ad-history-stat">
+        <div class="mv-ad-history-stat-label">Highest</div>
+        <div class="mv-ad-history-stat-value" id="priceHistoryHigh">—</div>
+      </div>
+      <div class="mv-ad-history-stat">
+        <div class="mv-ad-history-stat-label">Lowest</div>
+        <div class="mv-ad-history-stat-value" id="priceHistoryLow">—</div>
+      </div>
+    </div>
+
+    <div class="mv-ad-history-explainer" id="priceHistoryExplainer">
+      Daily trend view showing how price has moved across the selected monitoring window.
+    </div>
+
+    <div id="priceHistoryChart" class="mv-ad-history-chart" data-symbol="{{ asset.symbol }}"></div>
+
+    <div class="mv-ad-history-context-grid">
+      <div class="mv-ad-history-context-card">
+        <div class="mv-ad-history-context-label">Why this matters</div>
+        <div class="mv-ad-history-context-copy" id="priceHistoryWhyText">
+          Use this view to judge whether current movement supports continued monitoring attention.
+        </div>
+      </div>
+      <div class="mv-ad-history-context-card">
+        <div class="mv-ad-history-context-label">Best use</div>
+        <div class="mv-ad-history-context-copy" id="priceHistoryUseText">
+          Compare recent price direction with active signals and alerts before preparing deeper planning context.
+        </div>
+      </div>
+    </div>
+
+    <div class="mv-ad-history-footer">
+      <span id="priceHistoryWindowLabel">1D · broader trend</span>
+      <span id="priceHistoryUpdatedLabel">Using stored OHLC history</span>
+    </div>
   </section>
 
-  <div class="mv-ad-main">
-    <section class="mv-card">
+  <section class="mv-ad-evidence-grid">
+    <div class="mv-card mv-ad-evidence-card">
       <div class="mv-card-hd">
-        <span class="mv-card-title">Signal History</span>
+        <div>
+          <span class="mv-card-title">Signal History</span>
+          <div class="mv-ad-card-subtitle">Persisted signal events linked to this asset.</div>
+        </div>
         <span class="mv-card-link">{{ signal_history|length }} signal{{ signal_history|length|pluralize }}</span>
       </div>
 
       {% if signal_history %}
-        {% for sig in signal_history %}
-        <div class="mv-detail-sig-row">
-          <span class="mv-chip {% if sig.severity == 'ELEVATED' %}elevated{% elif sig.severity == 'WATCHLIST' %}watchlist{% else %}info{% endif %}">
-            {{ sig.severity }}
-          </span>
-
-          <span class="mv-sig-type-badge">{{ sig.get_signal_type_display|upper|truncatechars:12 }}</span>
-
-          <span class="mv-sig-detail-msg">{{ sig.details|default:sig.title|truncatechars:50 }}</span>
-
-          {% if sig.metric_value is not None %}
-            <span class="mv-sig-metric">{{ sig.metric_value|floatformat:2 }}</span>
-          {% endif %}
-
-          <span class="mv-sig-ts" data-relative-time="{{ sig.signal_timestamp|date:'c' }}">
-            {{ sig.signal_timestamp|timesince }} ago
-          </span>
+        <div class="mv-ad-signal-list">
+          {% for sig in signal_history %}
+            <div class="mv-detail-sig-row">
+              <span class="mv-chip {% if sig.severity == 'ELEVATED' %}elevated{% elif sig.severity == 'WATCHLIST' %}watchlist{% else %}info{% endif %}">{{ sig.severity }}</span>
+              <span class="mv-sig-type-badge">{{ sig.get_signal_type_display|upper|truncatechars:12 }}</span>
+              <span class="mv-sig-detail-msg">{{ sig.details|default:sig.title|truncatechars:70 }}</span>
+              {% if sig.metric_value is not None %}
+                <span class="mv-sig-metric">{{ sig.metric_value|floatformat:2 }}</span>
+              {% endif %}
+              <span class="mv-sig-ts" data-relative-time="{{ sig.signal_timestamp|date:'c' }}">{{ sig.signal_timestamp|timesince }} ago</span>
+            </div>
+          {% endfor %}
         </div>
-        {% endfor %}
       {% else %}
         <div class="mv-ad-empty">
           <div class="mv-ad-empty-title">No signals generated for this asset yet.</div>
+          <div class="mv-ad-empty-copy">This asset is still available for watchlist tracking and alert setup.</div>
         </div>
       {% endif %}
-    </section>
+    </div>
 
-    <section class="mv-card">
+    <div class="mv-card mv-ad-evidence-card">
       <div class="mv-card-hd">
-        <span class="mv-card-title">Active Alerts</span>
+        <div>
+          <span class="mv-card-title">Active Alerts</span>
+          <div class="mv-ad-card-subtitle">User-defined threshold conditions for this asset.</div>
+        </div>
         <a href="{% url 'monitoring:create_alert' %}" class="mv-card-link">+ New →</a>
       </div>
 
       {% if asset_alerts %}
-        {% for alert in asset_alerts %}
-        <div class="mv-alert-item">
-          <div class="mv-ai-row">
-            <span class="mv-ai-label">
-              Price {{ alert.direction }} ${{ alert.target_price|floatformat:2 }}
-            </span>
-            <span class="mv-chip {% if alert.is_triggered %}triggered{% else %}active{% endif %}">
-              {% if alert.is_triggered %}Triggered{% else %}Active{% endif %}
-            </span>
-          </div>
+        <div class="mv-ad-alert-list">
+          {% for alert in asset_alerts %}
+            <div class="mv-alert-item">
+              <div class="mv-ai-row">
+                <span class="mv-ai-label">Price {{ alert.direction }} ${{ alert.target_price|floatformat:2 }}</span>
+                <span class="mv-chip {% if alert.is_triggered %}triggered{% else %}active{% endif %}">{% if alert.is_triggered %}Triggered{% else %}Active{% endif %}</span>
+              </div>
 
-          {% if latest_snapshot and not alert.is_triggered %}
-            <div class="mv-ai-detail">
-              Current: ${{ latest_snapshot.price|floatformat:2 }}
+              {% if latest_snapshot and not alert.is_triggered %}
+                <div class="mv-ai-detail">Current: ${{ latest_snapshot.price|floatformat:2 }}</div>
+              {% elif alert.is_triggered %}
+                <div class="mv-ai-detail" data-relative-time="{{ alert.created_at|date:'c' }}">Triggered {{ alert.created_at|timesince }} ago</div>
+              {% endif %}
             </div>
-          {% elif alert.is_triggered %}
-            <div class="mv-ai-detail" data-relative-time="{{ alert.created_at|date:'c' }}">
-              Triggered {{ alert.created_at|timesince }} ago
-            </div>
-          {% endif %}
+          {% endfor %}
         </div>
-        {% endfor %}
       {% else %}
         <div class="mv-ad-empty">
           <div class="mv-ad-empty-title">No alerts set for {{ asset.symbol }}.</div>
+          <div class="mv-ad-empty-copy">Create a threshold alert to keep this asset visible when exact levels are reached.</div>
           <a href="{% url 'monitoring:create_alert' %}" class="mv-btn primary">Create alert →</a>
         </div>
       {% endif %}
-    </section>
-  </div>
+    </div>
+  </section>
 
   {% if has_elevated_signal %}
-  <div class="mv-cta-primary">
-    <div>
-      <div class="mv-cta-eye">RiskWise Planner — FinTech Suite</div>
-      <div class="mv-cta-title">Investigate {{ asset.symbol }} in RiskWise Planner</div>
-      <div class="mv-cta-sub">
-        {{ asset.symbol }} has an ELEVATED signal. Model scenarios, run Monte Carlo, and plan your position before entering.
+    <section class="mv-cta-primary mv-ad-handoff-cta">
+      <div>
+        <div class="mv-cta-eye">RiskWise Planner — Planned Suite Handoff</div>
+        <div class="mv-cta-title">Prepare {{ asset.symbol }} for RiskWise Planner</div>
+        <div class="mv-cta-sub">
+          {{ asset.symbol }} has an ELEVATED signal. MarketVista prepares monitoring evidence; RiskWise is the planned deeper scenario-planning layer.
+        </div>
       </div>
-    </div>
-    <a href="#" class="mv-btn-solid">Investigate in RiskWise →</a>
-  </div>
+      <span class="mv-btn-solid" aria-disabled="true">Planned RiskWise handoff →</span>
+    </section>
   {% else %}
-  <div class="mv-footer-cta">
-    <div>
-      <div class="mv-fc-eye">FinTech Suite</div>
-      <div class="mv-fc-txt">
-        When {{ asset.symbol }} reaches ELEVATED status, route to RiskWise Planner for scenario modelling.
+    <section class="mv-footer-cta mv-ad-handoff-cta">
+      <div>
+        <div class="mv-fc-eye">Planned Suite Handoff</div>
+        <div class="mv-fc-txt">
+          When {{ asset.symbol }} reaches elevated status, prepare this asset context for planned RiskWise scenario modelling.
+        </div>
       </div>
-    </div>
-    <a href="{% url 'monitoring:signals' %}" class="mv-btn">View all signals →</a>
-  </div>
+      <a href="{% url 'monitoring:signals' %}" class="mv-btn">View all signals →</a>
+    </section>
   {% endif %}
 
   <div class="mv-ad-back">
@@ -307,3 +344,5 @@
 {% block extra_js %}
 <script src="{% static 'js/asset-detail.js' %}"></script>
 {% endblock %}
+
+

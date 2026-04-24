@@ -936,3 +936,243 @@
     font-size: 22px;
   }
 }
+/* Premium SaaS component refinement — safe shared overrides */
+.mv-card {
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.055), transparent 36%),
+    rgba(15, 23, 42, 0.68);
+  box-shadow: var(--mv-shadow-sm);
+}
+
+.mv-card-hd {
+  gap: 14px;
+}
+
+.mv-card-title {
+  color: rgba(226, 232, 240, 0.62);
+  font-weight: 850;
+  letter-spacing: 0.10em;
+}
+
+.mv-card-link,
+.mv-view-link,
+.mv-sc-link {
+  font-weight: 800;
+  color: rgba(45, 212, 191, 0.92);
+  transition: color var(--mv-transition-fast), transform var(--mv-transition-fast);
+}
+
+.mv-card-link:hover,
+.mv-view-link:hover,
+.mv-sc-link:hover {
+  color: rgba(103, 232, 249, 0.96);
+}
+
+.mv-btn {
+  min-height: 38px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border-color: rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.38);
+  color: rgba(226, 232, 240, 0.70);
+  font-weight: 750;
+}
+
+.mv-btn:hover {
+  border-color: rgba(45, 212, 191, 0.28);
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.mv-btn.primary {
+  background: rgba(13, 148, 136, 0.16);
+  border-color: rgba(45, 212, 191, 0.30);
+  color: rgba(153, 246, 228, 0.94);
+}
+
+.mv-btn[aria-disabled="true"],
+.mv-btn-solid[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.mv-chip,
+.severity-chip {
+  min-height: 20px;
+  padding: 3px 8px;
+  font-weight: 850;
+}
+
+.mv-detail-sig-row,
+.mv-alert-item {
+  transition: background var(--mv-transition-fast), transform var(--mv-transition-fast);
+}
+
+.mv-sig-type-badge {
+  background: rgba(148, 163, 184, 0.10);
+  color: rgba(203, 213, 225, 0.48);
+  font-weight: 800;
+}
+
+.mv-sig-detail-msg {
+  color: rgba(203, 213, 225, 0.62);
+}
+
+.mv-sig-ts,
+.mv-ai-detail {
+  color: rgba(148, 163, 184, 0.48);
+}
+
+.mv-ai-label {
+  color: rgba(226, 232, 240, 0.72);
+  font-weight: 650;
+}
+
+.mv-footer-cta,
+.mv-cta-primary {
+  border-radius: 18px;
+  border-color: rgba(45, 212, 191, 0.22);
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.10), transparent 34%),
+    rgba(13, 148, 136, 0.07);
+}
+
+.mv-fc-eye,
+.mv-cta-eye {
+  color: rgba(45, 212, 191, 0.92);
+  font-weight: 850;
+}
+
+.mv-fc-txt,
+.mv-cta-sub {
+  color: rgba(203, 213, 225, 0.66);
+  line-height: 1.55;
+}
+
+.mv-empty {
+  border-color: rgba(148, 163, 184, 0.14);
+  background: rgba(15, 23, 42, 0.42);
+  color: rgba(148, 163, 184, 0.62);
+}
+
+/* =========================================================
+   MarketVista Workflow Premium Foundation — Final Pass
+   Shared form/control hardening for workflow pages.
+   Keep shared primitives here; page composition remains in pages/*.css.
+   ========================================================= */
+
+.mv-btn,
+.mv-btn-solid,
+.mv-card-link,
+.mv-view-link,
+.mv-sc-link {
+  text-decoration: none;
+}
+
+.mv-btn[aria-disabled="true"],
+.mv-btn-solid[aria-disabled="true"] {
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.82;
+}
+
+.mv-search-input,
+.mv-alert-status-select,
+.mv-watchlist-select,
+.mv-ca-form select,
+.mv-ca-form input,
+.mv-ca-form textarea {
+  color-scheme: dark;
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+}
+
+.mv-alert-status-select,
+.mv-watchlist-select,
+.mv-ca-form select {
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(148, 163, 184, 0.92) 50%),
+    linear-gradient(135deg, rgba(148, 163, 184, 0.92) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 13px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 38px !important;
+}
+
+.mv-alert-status-select option,
+.mv-watchlist-select option,
+.mv-ca-form select option {
+  background: #0f172a;
+  color: rgba(226, 232, 240, 0.94);
+}
+
+.mv-search-input::placeholder,
+.mv-ca-form input::placeholder,
+.mv-ca-form textarea::placeholder {
+  color: rgba(148, 163, 184, 0.58);
+}
+
+.mv-alerts-page [hidden],
+.mv-watchlist-page [hidden],
+.mv-create-alert-page [hidden],
+.mv-asset-detail-page [hidden] {
+  display: none !important;
+}
+/* =========================================================
+   Disabled / Planned Action State
+   Final cursor + tooltip-safe override
+   Use for inactive suite handoff buttons:
+   <span class="mv-btn is-disabled" aria-disabled="true">...</span>
+   ========================================================= */
+
+.mv-btn.is-disabled,
+.mv-btn-solid.is-disabled,
+.mv-btn[aria-disabled="true"],
+.mv-btn-solid[aria-disabled="true"],
+span.mv-btn[aria-disabled="true"],
+span.mv-btn-solid[aria-disabled="true"] {
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+  opacity: 0.58;
+  filter: grayscale(0.12);
+  user-select: none;
+}
+
+.mv-btn.is-disabled:hover,
+.mv-btn-solid.is-disabled:hover,
+.mv-btn[aria-disabled="true"]:hover,
+.mv-btn-solid[aria-disabled="true"]:hover,
+span.mv-btn[aria-disabled="true"]:hover,
+span.mv-btn-solid[aria-disabled="true"]:hover {
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: grayscale(0.18);
+  border-color: rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.58);
+  color: rgba(203, 213, 225, 0.58);
+}
+
+.mv-btn.is-disabled:active,
+.mv-btn-solid.is-disabled:active,
+.mv-btn[aria-disabled="true"]:active,
+.mv-btn-solid[aria-disabled="true"]:active,
+span.mv-btn[aria-disabled="true"]:active,
+span.mv-btn-solid[aria-disabled="true"]:active {
+  transform: none !important;
+}
+
+.mv-btn.is-disabled:focus-visible,
+.mv-btn-solid.is-disabled:focus-visible,
+.mv-btn[aria-disabled="true"]:focus-visible,
+.mv-btn-solid[aria-disabled="true"]:focus-visible,
+span.mv-btn[aria-disabled="true"]:focus-visible,
+span.mv-btn-solid[aria-disabled="true"]:focus-visible {
+  outline: 2px solid rgba(148, 163, 184, 0.22);
+  outline-offset: 2px;
+}

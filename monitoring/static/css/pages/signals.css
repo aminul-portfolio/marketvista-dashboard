@@ -1,56 +1,298 @@
 .mv-signals-page {
   display: flex;
   flex-direction: column;
+  gap: 18px;
+}
+
+/* Hero */
+
+.mv-signals-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid rgba(34, 211, 238, 0.16);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.16), transparent 32%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(2, 8, 23, 0.96));
+  box-shadow: var(--mv-shadow-md);
+}
+
+.mv-signals-eyebrow {
+  margin-bottom: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(153, 246, 228, 0.88);
+}
+
+.mv-signals-title {
+  margin: 0;
+  font-size: clamp(30px, 3vw, 48px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.mv-signals-copy {
+  max-width: 820px;
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(226, 232, 240, 0.76);
+}
+
+.mv-signals-hero-meta {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+}
+
+.mv-signals-hero-meta > div {
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.mv-signals-hero-meta span {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.72);
+}
+
+.mv-signals-hero-meta strong {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+/* Summary cards */
+
+.mv-signals-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
-.mv-signals-page .mv-signals-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.mv-signals-page .mv-elevated-banner {
-  box-shadow: var(--mv-shadow-md), 0 0 18px rgba(249, 115, 22, 0.08);
-}
-
-.mv-signals-page .mv-sig-card {
-  background: var(--mv-surface-glass);
+.mv-signal-summary-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.08), transparent 36%),
+    rgba(15, 23, 42, 0.72);
   box-shadow: var(--mv-shadow-sm);
 }
 
-.mv-signals-page .mv-sig-card:hover {
-  background: rgba(255, 255, 255, 0.045);
+.mv-signal-summary-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-left: 3px solid rgba(45, 212, 191, 0.5);
+  pointer-events: none;
 }
 
-.mv-signals-page .mv-sig-card.elevated {
-  background: rgba(249, 115, 22, 0.04);
+.mv-signal-summary-card.elevated::before {
+  border-left-color: rgba(249, 115, 22, 0.92);
 }
 
-.mv-signals-page .mv-sig-card.watchlist {
-  background: rgba(245, 158, 11, 0.04);
+.mv-signal-summary-card.watchlist::before {
+  border-left-color: rgba(245, 158, 11, 0.9);
 }
 
-.mv-signals-page .mv-signals-empty {
+.mv-signal-summary-card.info::before {
+  border-left-color: rgba(148, 163, 184, 0.75);
+}
+
+.mv-signal-summary-label {
+  margin-bottom: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.76);
+}
+
+.mv-signal-summary-value {
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.mv-signal-summary-card.elevated .mv-signal-summary-value {
+  color: #f97316;
+}
+
+.mv-signal-summary-card.watchlist .mv-signal-summary-value {
+  color: #f59e0b;
+}
+
+.mv-signal-summary-copy {
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(203, 213, 225, 0.68);
+}
+
+/* Filters */
+
+.mv-signal-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.mv-signal-filter-row .mv-btn {
+  min-width: 108px;
+  justify-content: center;
+}
+
+.mv-signal-filter-row .mv-btn.primary {
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.22), 0 0 24px rgba(20, 184, 166, 0.08);
+}
+
+/* Elevated banner */
+
+.mv-elevated-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 18px 20px;
+  border: 1px solid rgba(249, 115, 22, 0.36);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.13), transparent 34%),
+    rgba(15, 23, 42, 0.76);
+  box-shadow: var(--mv-shadow-md), 0 0 22px rgba(249, 115, 22, 0.08);
+}
+
+.mv-elevated-kicker {
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(251, 146, 60, 0.9);
+}
+
+.mv-elevated-title {
+  font-size: 16px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.mv-elevated-copy {
+  margin-top: 6px;
+  max-width: 900px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(226, 232, 240, 0.68);
+}
+
+.mv-elevated-pill {
+  white-space: nowrap;
+  padding: 9px 13px;
+  border: 1px solid rgba(249, 115, 22, 0.34);
+  border-radius: 999px;
+  background: rgba(249, 115, 22, 0.1);
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(253, 186, 116, 0.95);
+}
+
+/* Signal registry */
+
+.mv-signals-registry {
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.mv-signals-registry .mv-card-hd {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.mv-latest-signals-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.mv-latest-signals-list .mv-detail-sig-row {
+  min-height: 54px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.09);
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.mv-latest-signals-list .mv-detail-sig-row:last-child {
+  border-bottom: 0;
+}
+
+.mv-latest-signals-list .mv-detail-sig-row:hover {
+  background: rgba(255, 255, 255, 0.025);
+  transform: translateX(2px);
+}
+
+.mv-signals-empty {
   min-height: 220px;
   display: grid;
   place-items: center;
   text-align: center;
 }
 
-.mv-signals-page .mv-signals-empty-title {
+.mv-signals-empty-title {
   font-size: 16px;
   color: rgba(255, 255, 255, 0.76);
   margin-bottom: 8px;
 }
 
-.mv-signals-page .mv-signals-empty-copy {
+.mv-signals-empty-copy {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.40);
+  color: rgba(255, 255, 255, 0.4);
 }
 
-@media (max-width: 1080px) {
-  .mv-signals-page .mv-signals-summary {
+/* Responsive */
+
+@media (max-width: 1180px) {
+  .mv-signals-hero {
     grid-template-columns: 1fr;
   }
+
+  .mv-signals-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .mv-elevated-banner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+.mv-signals-registry-subtitle {
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(148, 163, 184, 0.58);
+}
+
+.mv-latest-signals-list .mv-detail-sig-row[hidden] {
+  display: none;
+}
+
+.mv-signals-registry .mv-card-link {
+  white-space: nowrap;
+}
+.mv-signals-empty[hidden],
+.mv-signals-filter-empty[hidden],
+[data-signal-no-results][hidden] {
+  display: none !important;
 }
